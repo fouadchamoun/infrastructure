@@ -1,11 +1,12 @@
 kite:
+  fullnameOverride: kite-ng
   host: kite.homelab.fouad.dev
   db:
     sqlite:
       persistence:
         pvc:
           enabled: true
-          storageClass: linstor-replicated
+          storageClass: longhorn
           size: 1Gi
   ingress:
     enabled: true
