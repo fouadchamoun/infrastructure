@@ -5,7 +5,7 @@ kite:
       persistence:
         pvc:
           enabled: true
-          storageClass: linstor-replicated
+          storageClass: longhorn
           size: 1Gi
   ingress:
     enabled: true
