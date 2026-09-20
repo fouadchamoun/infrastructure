@@ -18,6 +18,7 @@
     "imageBuildTool": "Docker"
   },
   "files.associations": {
-    "*.tf": "terraform"
+    "*.tf": "terraform",
+    "*.yaml.tftpl": "yaml"
   }
 }

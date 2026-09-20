@@ -72,6 +72,8 @@ resource "talos_image_factory_schematic" "this" {
             "siderolabs/intel-ucode",
             "siderolabs/qemu-guest-agent",
             "siderolabs/thunderbolt",
+            "siderolabs/iscsi-tools",
+            "siderolabs/util-linux-tools"
           ]
         }
       }
@@ -125,8 +127,10 @@ ephemeral "talos_machine_configuration" "controlplane" {
     yamlencode({
       machine = {
         install = {
-          disk  = "/dev/sda"
           image = data.talos_image_factory_urls.this.urls.installer
+          diskSelector = {
+            size = "<= 500GB"
+          }
         }
         sysctls = {
           "user.max_user_namespaces" = "63556"
@@ -151,6 +155,19 @@ ephemeral "talos_machine_configuration" "controlplane" {
           extraArgs = {
             node-status-update-frequency = "4s"
           }
+
+          extraMounts = [
+            {
+              source = "/var/mnt/longhorn"
+              destination = "/var/mnt/longhorn" # set as longhorn default data path
+              type = "bind"
+              options = [
+                "bind",
+                "rshared",
+                "rw"
+              ]
+            }
+          ]
         }
         features = {
           hostDNS = {
@@ -166,7 +183,8 @@ ephemeral "talos_machine_configuration" "controlplane" {
       ip_cidr = "${each.value.ip}/24"
       ip_gateway = "192.168.200.1"
       ip_vip = local.cluster_vip
-    })
+    }),
+    templatefile("${path.module}/assets/user-volume-config.yaml.tftpl", {})
   ]
 }
 
