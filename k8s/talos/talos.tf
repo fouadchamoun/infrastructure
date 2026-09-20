@@ -92,92 +92,8 @@ ephemeral "talos_machine_configuration" "controlplane" {
   talos_version    = local.talos_version
   kubernetes_version = local.kubernetes_version
 
-  config_patches = [
-    yamlencode({
-      cluster = {
-        allowSchedulingOnControlPlanes = true
-        apiServer = {
-          extraArgs = {
-            default-not-ready-toleration-seconds = "30"
-            default-unreachable-toleration-seconds = "30"
-          }
-          certSANs = [
-            "k8s.homelab.fouad.dev"
-          ]
-        }
-        scheduler = {
-          extraArgs = {
-            bind-address = "0.0.0.0"
-          }
-        }
-        controllerManager = {
-          extraArgs = {
-            bind-address = "0.0.0.0"
-            node-monitor-period = "2s"
-            node-monitor-grace-period = "20s"
-          }
-        }
-        proxy = {
-          extraArgs = {
-            metrics-bind-address = "0.0.0.0:10249"
-          }
-        }
-      }
-    }),
-    yamlencode({
-      machine = {
-        install = {
-          image = data.talos_image_factory_urls.this.urls.installer
-          diskSelector = {
-            size = "<= 500GB"
-          }
-        }
-        sysctls = {
-          "user.max_user_namespaces" = "63556"
-        }
-        kernel = {
-          modules = [
-            {
-              name       = "drbd"
-              parameters = [
-                "usermode_helper=disabled"
-              ]
-            },
-            {
-              name = "drbd_transport_tcp"
-            }
-          ]
-        }
-        kubelet = {
-          extraConfig = {
-            imageMaximumGCAge = "24h"
-          }
-          extraArgs = {
-            node-status-update-frequency = "4s"
-          }
-
-          extraMounts = [
-            {
-              source = "/var/mnt/longhorn"
-              destination = "/var/mnt/longhorn" # set as longhorn default data path
-              type = "bind"
-              options = [
-                "bind",
-                "rshared",
-                "rw"
-              ]
-            }
-          ]
-        }
-        features = {
-          hostDNS = {
-            enabled = true
-            forwardKubeDNSToHost = true
-            resolveMemberNames = true
-          }
-        }
-      }
-    }),
+  config_patches = flatten([
+    local.common_patches,
     templatefile("${path.module}/assets/network-config.yaml.tftpl", {
       hostname = each.key
       ip_cidr = "${each.value.ip}/24"
@@ -185,7 +101,30 @@ ephemeral "talos_machine_configuration" "controlplane" {
       ip_vip = local.cluster_vip
     }),
     templatefile("${path.module}/assets/user-volume-config.yaml.tftpl", {})
-  ]
+  ])
+}
+
+ephemeral "talos_machine_configuration" "controlplane_bare_metal" {
+  for_each = local.nodes.controlplane_bare_metal
+
+  cluster_name     = local.cluster_name
+  cluster_endpoint = local.cluster_endpoint
+  machine_secrets  = local.machine_secrets
+
+  machine_type     = "controlplane"
+  talos_version    = local.talos_version
+  kubernetes_version = local.kubernetes_version
+
+  config_patches = flatten([
+    local.common_patches,
+    templatefile("${path.module}/assets/network-config.yaml.tftpl", {
+      hostname = each.key
+      ip_cidr = "${each.value.ip}/24"
+      ip_gateway = "192.168.200.1"
+      ip_vip = local.cluster_vip
+    }),
+    templatefile("${path.module}/assets/user-volume-config.yaml.tftpl", {})
+  ])
 }
 
 # Step 5: Apply configuration using write-only input
@@ -194,6 +133,16 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
   client_configuration_wo        = ephemeral.talos_client_configuration.this.client_configuration
   machine_configuration_input_wo = ephemeral.talos_machine_configuration.controlplane[each.key].machine_configuration
+  node                           = each.key
+  endpoint                       = each.value.ip
+  apply_mode                     = "staged_if_needing_reboot"
+}
+
+resource "talos_machine_configuration_apply" "controlplane_bare_metal" {
+  for_each = local.nodes.controlplane_bare_metal
+
+  client_configuration_wo        = ephemeral.talos_client_configuration.this.client_configuration
+  machine_configuration_input_wo = ephemeral.talos_machine_configuration.controlplane_bare_metal[each.key].machine_configuration
   node                           = each.key
   endpoint                       = each.value.ip
   apply_mode                     = "staged_if_needing_reboot"
