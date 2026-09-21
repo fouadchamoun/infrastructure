@@ -33,6 +33,17 @@ custom_formats:
   # Use `recyclarr list custom-formats sonarr` for values you can put here.
   # https://trash-guides.info/Sonarr/Sonarr-collection-of-custom-formats/
   - trash_ids:
+      - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups (-10000)
+      - 9c11cd3f07101cdba90a2d81cf0e56b4 # LQ (-10000)
+      - e2315f990da2e2cbfc9fa5b7a6fcfe48 # LQ (Release Title) (-10000)
+      - 23297a736ca77c0fc8e70f8edd7ee56c # Upscaled (-10000)
+      - fbcb31d8dabd2a319072b84fc0b7249c # Extras (-10000)
+    assign_scores_to:
+      - name: DEFAULT
+      - name: BLURAY
+      - name: REMUX
+      
+  - trash_ids:
       - e6258996055b9fbab7e9cb2f75819294 # WEB Tier 01 (1700)
       - 58790d4e2fdcd9733aa7ae68ba2bb503 # WEB Tier 02 (1650)
       - d84935abd3f8556dcd51d4f27e22d0a6 # WEB Tier 03 (1600)
@@ -45,13 +56,6 @@ custom_formats:
       - 0c4b99df9206d2cfac3c05ab897dd62a # HDR10+ Boost (100)
       - 7c3a61a9c6cb04f52f1544be6d44a026 # DV Boost (1000)
       - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback) (-10000)
-
-      # - 47435ece6b99a0b477caf360e79ba0bb # x265 (HD) (-10000)
-      - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups (-10000)
-      - 9c11cd3f07101cdba90a2d81cf0e56b4 # LQ (-10000)
-      - e2315f990da2e2cbfc9fa5b7a6fcfe48 # LQ (Release Title) (-10000)
-      - 23297a736ca77c0fc8e70f8edd7ee56c # Upscaled (-10000)
-      - fbcb31d8dabd2a319072b84fc0b7249c # Extras (-10000)
     assign_scores_to:
       - name: DEFAULT
       - name: BLURAY
