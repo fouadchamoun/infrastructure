@@ -18,7 +18,7 @@ immich:
 
   fallbackDefaults:
     persistenceType: pvc
-    storageClass: linstor-replicated
+    storageClass: longhorn
 
   persistence:
     library:
