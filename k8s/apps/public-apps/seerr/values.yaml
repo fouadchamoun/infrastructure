@@ -5,14 +5,8 @@ seerr-chart:
     repository: seerr-team/seerr
   config:
     persistence:
-      name: seerr-data
-      # -- Size of persistent disk
       size: 1Gi
-      # -- Access modes of persistent disk
-      accessModes:
-        - ReadWriteOnce
-      # -- Storage class for the PVC. Set to "-" to disable dynamic provisioning. Uses default storage class if no value is provided
-      storageClass: linstor-replicated
+      storageClass: longhorn
       annotations:
         argocd.argoproj.io/sync-options: "Delete=false"
         argocd.argoproj.io/sync-wave: "-1"
