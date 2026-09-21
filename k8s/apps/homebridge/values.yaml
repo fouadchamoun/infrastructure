@@ -10,12 +10,8 @@ homebridge:
 
   persistence:
     config:
-      enabled: false
-    data:
-      enabled: true
       type: pvc
-      storageClass: linstor-replicated
-      mountPath: /homebridge
+      storageClass: longhorn
       size: 1Gi
       annotations:
         argocd.argoproj.io/sync-wave: "-1"
