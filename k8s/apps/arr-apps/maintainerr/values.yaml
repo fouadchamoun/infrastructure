@@ -15,12 +15,13 @@ maintainerr:
 
   persistence:
     data:
+      enabled: false
+    data-ng:
+      enabled: true
       type: pvc
-      storageClass: linstor-replicated
+      storageClass: longhorn
+      mountPath: "/opt/data"
       size: 500Mi
-      annotations:
-        argocd.argoproj.io/sync-wave: "-1"
-        argocd.argoproj.io/sync-options: Delete=false
 
   resources:
     requests:
