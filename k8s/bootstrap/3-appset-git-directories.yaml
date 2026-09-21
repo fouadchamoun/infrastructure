@@ -6,6 +6,7 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+    argocd-diff-preview/watch-pattern: k8s/apps/**/*
 spec:
   goTemplate: true
 
