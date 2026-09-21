@@ -1,6 +1,6 @@
 # Infrastructure as Code
 
-[![Cloudflare](https://github.com/fouadchamoun/homelab/actions/workflows/cloudflare.yml/badge.svg)](https://github.com/fouadchamoun/homelab/actions/workflows/cloudflare.yml)
+[![Cloudflare](https://github.com/fouadchamoun/infrastructure/actions/workflows/cloudflare.yml/badge.svg)](https://github.com/fouadchamoun/infrastructure/actions/workflows/cloudflare.yml)
 
 This repository contains the configuration for my personal infrastructure. It is managed using a combination of Ansible, Terraform and ArgoCD to automate the setup and maintenance of various services.
 

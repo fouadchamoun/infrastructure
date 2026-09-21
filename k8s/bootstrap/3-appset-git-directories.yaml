@@ -14,7 +14,7 @@ spec:
     - matrix:
         generators:
           - git:
-              repoURL: https://github.com/fouadchamoun/homelab.git
+              repoURL: https://github.com/fouadchamoun/infrastructure.git
               revision: main
               directories:
                 - path: k8s/apps/*
@@ -30,19 +30,19 @@ spec:
                 - path.path # join on the app directory path
               generators:
                 - git:
-                    repoURL: https://github.com/fouadchamoun/homelab.git
+                    repoURL: https://github.com/fouadchamoun/infrastructure.git
                     revision: main
                     directories:
                       - path: "{{ .values.appPath }}"
                 # PATCH: optional per-app overrides from argocd-patch.yaml
                 - git:
-                    repoURL: https://github.com/fouadchamoun/homelab.git
+                    repoURL: https://github.com/fouadchamoun/infrastructure.git
                     revision: main
                     files:
                       - path: "{{ .values.appPath }}/argocd-patch.yaml"
 
     - git:
-        repoURL: https://github.com/fouadchamoun/homelab.git
+        repoURL: https://github.com/fouadchamoun/infrastructure.git
         revision: main
         directories:
           - path: k8s/apps/public-apps/*
@@ -50,7 +50,7 @@ spec:
           namespace: public-apps
 
     - git:
-        repoURL: https://github.com/fouadchamoun/homelab.git
+        repoURL: https://github.com/fouadchamoun/infrastructure.git
         revision: main
         directories:
           - path: k8s/apps/arr-apps/*
@@ -68,7 +68,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/fouadchamoun/homelab.git
+        repoURL: https://github.com/fouadchamoun/infrastructure.git
         targetRevision: main
         path: "{{ .path.path }}"
       destination:

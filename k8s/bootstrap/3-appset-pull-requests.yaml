@@ -30,13 +30,13 @@ spec:
                 - path.path # join on the app directory path
               generators:
                 - git:
-                    repoURL: https://github.com/fouadchamoun/homelab.git
+                    repoURL: https://github.com/fouadchamoun/infrastructure.git
                     revision: "{{ .values.head_sha }}"
                     directories:
                       - path: k8s/apps/{{ .values.appName }}
                 # PATCH: optional per-app overrides from argocd-patch.yaml
                 - git:
-                    repoURL: https://github.com/fouadchamoun/homelab.git
+                    repoURL: https://github.com/fouadchamoun/infrastructure.git
                     revision: "{{ .values.head_sha }}"
                     files:
                       - path: "k8s/apps/{{ .values.appName }}/argocd-patch.yaml"
@@ -47,7 +47,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/fouadchamoun/homelab.git
+        repoURL: https://github.com/fouadchamoun/infrastructure.git
         targetRevision: "{{ .head_sha }}"
         path: "k8s/apps/{{ .values.appName }}"
       destination:

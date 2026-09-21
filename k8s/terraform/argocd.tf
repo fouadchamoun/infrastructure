@@ -40,7 +40,7 @@ resource "argocd_project" "cluster_bootstrap" {
     description = "Cluster Bootstrap"
 
     source_repos = [
-      "https://github.com/fouadchamoun/homelab.git",
+      "https://github.com/fouadchamoun/infrastructure.git",
       "https://github.com/argoproj/argo-cd",
       "https://argoproj.github.io/argo-helm",
       "ghcr.io/piraeusdatastore/piraeus-operator",
@@ -115,7 +115,7 @@ resource "argocd_application" "cluster_bootstrap" {
     project = argocd_project.cluster_bootstrap.metadata[0].name
 
     source {
-      repo_url        = "https://github.com/fouadchamoun/homelab.git"
+      repo_url        = "https://github.com/fouadchamoun/infrastructure.git"
       target_revision = "main"
       path            = "k8s/bootstrap"
     }
