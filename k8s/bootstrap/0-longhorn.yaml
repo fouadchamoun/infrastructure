@@ -1,0 +1,71 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cluster-bootstrap
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: longhorn-system
+  sources:
+    - repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: 1.12.1
+      helm:
+        valuesObject:
+          preUpgradeChecker:
+            # -- Setting that allows Longhorn to perform pre-upgrade checks. Disable this setting when installing Longhorn using Argo CD or other GitOps solutions.
+            jobEnabled: false
+         
+          # https://github.com/longhorn/charts/blob/longhorn-1.12.1/charts/longhorn/values.yaml#L260
+          defaultSettings:
+            defaultDataPath: /var/mnt/longhorn/
+            nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+            storageOverProvisioningPercentage: 100
+            storageMinimalAvailablePercentage: 25
+            defaultDataLocality: best-effort
+          
+          ingress:
+            enabled: true
+            host: longhorn.homelab.fouad.dev
+            annotations: {}
+
+          metrics:
+            serviceMonitor:
+              # -- Setting that allows the creation of a Prometheus ServiceMonitor resource for Longhorn Manager components.
+              enabled: false
+
+          persistence:
+            createStorageClass: true
+            defaultClass: false
+            defaultFsType: ext4
+            defaultClassReplicaCount: 2
+            # -- Data locality of the default Longhorn StorageClass. (Options: "disabled", "best-effort")
+            defaultDataLocality: best-effort
+            # -- Reclaim policy that provides instructions for handling of a volume after its claim is released. (Options: "Retain", "Delete")
+            reclaimPolicy: Delete
+            # -- Setting that allows you to enable live migration of a Longhorn volume from one node to another.
+            migratable: true
+            # -- Setting that allows you to enable automatic snapshot removal during filesystem trim for a Longhorn StorageClass. (Options: "ignored", "enabled", "disabled")
+            unmapMarkSnapChainRemoved: enabled
+            # -- Setting that allows you to specify the data engine version for the default Longhorn StorageClass. (Options: "v1", "v2")
+            dataEngine: v1
+          
+          # -- Add extra objects manifests
+          extraObjects: []
+
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels: # The labels to set on the application namespace
+        pod-security.kubernetes.io/enforce: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - PruneLast=true
+      - ServerSideApply=true
+      - FailOnSharedResource=true
+      - RespectIgnoreDifferences=true

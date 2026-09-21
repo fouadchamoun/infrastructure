@@ -45,6 +45,7 @@ resource "argocd_project" "cluster_bootstrap" {
       "https://argoproj.github.io/argo-helm",
       "ghcr.io/piraeusdatastore/piraeus-operator",
       "ghcr.io/piraeusdatastore/helm-charts",
+      "https://charts.longhorn.io",
       "quay.io/jetstack/charts",
       "https://charts.external-secrets.io",
       "https://traefik.github.io/charts",
@@ -71,6 +72,10 @@ resource "argocd_project" "cluster_bootstrap" {
     destination {
       server    = "https://kubernetes.default.svc"
       namespace = "piraeus-datastore"
+    }
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "longhorn-system"
     }
     destination {
       server    = "https://kubernetes.default.svc"
