@@ -28,9 +28,9 @@
     state: present
     name:
       # renovate: registry=https://packages.linbit.com/public suite=proxmox-9 components=drbd-9
-      - linstor-controller=1.33.3-1
+      - linstor-controller=1.35.2-1
       # renovate: registry=https://packages.linbit.com/public suite=proxmox-9 components=drbd-9
-      - linstor-satellite=1.33.3-1
+      - linstor-satellite=1.35.2-1
       # renovate: registry=https://packages.linbit.com/public suite=proxmox-9 components=drbd-9
       - linstor-client=1.27.1-1
       # renovate: registry=https://packages.linbit.com/public suite=proxmox-9 components=drbd-9
