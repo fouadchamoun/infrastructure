@@ -41,7 +41,7 @@ spec:
 
           persistence:
             createStorageClass: true
-            defaultClass: false
+            defaultClass: true
             defaultFsType: ext4
             defaultClassReplicaCount: 2
             # -- Data locality of the default Longhorn StorageClass. (Options: "disabled", "best-effort")
