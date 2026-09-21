@@ -89,7 +89,7 @@ spec:
             storageSpec:
              volumeClaimTemplate:
                spec:
-                 storageClassName: linstor-replicated
+                 storageClassName: longhorn
                  accessModes: ["ReadWriteOnce"]
                  resources:
                    requests:
@@ -106,7 +106,7 @@ spec:
             storage:
              volumeClaimTemplate:
                spec:
-                 storageClassName: linstor-replicated
+                 storageClassName: longhorn
                  accessModes: ["ReadWriteOnce"]
                  resources:
                    requests:
