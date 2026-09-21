@@ -5,6 +5,6 @@ name: cloudflared
 version: 0.1.0
 
 dependencies:
-  - name: base-app
-    repository: file://../../charts/base-app
-    version: 0.1.0
+  - name: cloudflared
+    repository: oci://oci.trueforge.org/truecharts
+    version: 16.15.1

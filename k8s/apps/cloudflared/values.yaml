@@ -1,34 +1,38 @@
-base-app:
-  image:
-    repository: cloudflare/cloudflared
-    tag: 2026.8.3
-  replicaCount: 3
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 0
-  service:
-    enabled: false
-  ingressRoute:
-    enabled: false
-  secrets:
-    env:
-      tunnel-token:
-        envVarName: TUNNEL_TOKEN
-        remoteRef:
-          key: path:/cloudflare/tunnel/talos
-          property: token
-  command:
-    # Configures tunnel run parameters
-    - cloudflared
-    - tunnel
-    - --no-autoupdate
-    - --loglevel
-    - info
-    - --metrics
-    - 0.0.0.0:2000
-    - run
+cloudflared:
+  workload:
+    main:
+      type: Deployment
+      replicas: 3
+      strategy: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+        maxSurge: 0
+      
+      podSpec:
+        containers:
+          main:
+            env:
+              # https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/configure-tunnels/run-parameters
+              TUNNEL_METRICS: 0.0.0.0:2000
+            envFrom:
+            - secretRef:
+                name: "{{ .Release.Name }}-tunnel-token"
+                expandObjectName: false
+
+            probes:
+              # Cloudflared has a /ready endpoint which returns 200 if and only if
+              # it has an active connection to Cloudflare's network.
+              liveness:
+                enabled: true
+                port: 2000
+                path: /ready
+                spec:
+                  initialDelaySeconds: 10
+                  failureThreshold: 1
+                  successThreshold: 1
+                  timeoutSeconds: 5
+                  periodSeconds: 10
+
   resources:
     requests:
       cpu: 500m
@@ -37,17 +41,24 @@ base-app:
       cpu: 4000m
       memory: 1024Mi
 
-  podSecurityContext:
-    sysctls:
-      # Allows ICMP traffic (ping, traceroute) to resources behind cloudflared.
-      - name: net.ipv4.ping_group_range
-        value: "65532 65532"
-  livenessProbe:
-    failureThreshold: 1
-    initialDelaySeconds: 10
-    periodSeconds: 10
-    httpGet:
-      # Cloudflared has a /ready endpoint which returns 200 if and only if
-      # it has an active connection to Cloudflare's network.
-      path: /ready
-      port: 2000
+  extraTpl:
+  - |
+    apiVersion: external-secrets.io/v1
+    kind: ExternalSecret
+    metadata:
+      name: "{{ .Release.Name }}-tunnel-token"
+    spec:
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: scw-sm
+      target:
+        name: "{{ .Release.Name }}-tunnel-token"
+        template:
+          engineVersion: v2
+          data:
+            TUNNEL_TOKEN: "{{ .token }}"
+      refreshInterval: 1h
+      data:
+      - secretKey: token
+        remoteRef:
+          key: path:/cloudflare/tunnel/talos
