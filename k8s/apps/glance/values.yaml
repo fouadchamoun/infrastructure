@@ -7,7 +7,7 @@ image:
 workload:
   main:
     type: Deployment
-    replicas: 3
+    replicas: 2
     strategy: RollingUpdate
     rollingUpdate:
       maxUnavailable: 0
