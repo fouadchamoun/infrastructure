@@ -19,7 +19,7 @@ spec:
         releaseName: traefik
         valueFiles:
           - $homelab_repo/k8s/bootstrap/traefik/values.yaml
-    - repoURL: 'https://github.com/fouadchamoun/homelab.git'
+    - repoURL: 'https://github.com/fouadchamoun/infrastructure.git'
       targetRevision: main
       path: k8s/bootstrap/traefik/manifests
       ref: homelab_repo

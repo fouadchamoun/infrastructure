@@ -1,0 +1,7 @@
+extraPatch:
+  spec:
+    source:
+      helm:
+        parameters:
+        - name: "cloudflared.workload.main.podSpec.containers.main.env.TUNNEL_TOKEN"
+          value: "null"
