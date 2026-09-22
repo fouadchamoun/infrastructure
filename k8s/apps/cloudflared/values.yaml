@@ -56,9 +56,8 @@ cloudflared:
         template:
           engineVersion: v2
           data:
-            TUNNEL_TOKEN: "{{ .token }}"
+            TUNNEL_TOKEN: "{{ "{{ .token }}" }}"
       refreshInterval: 1h
-      data:
-      - secretKey: token
-        remoteRef:
+      dataFrom:
+      - extract:
           key: path:/cloudflare/tunnel/talos
