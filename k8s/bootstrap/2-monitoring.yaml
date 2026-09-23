@@ -29,7 +29,11 @@ spec:
           rules:
             windows: false
           ## Disabled PrometheusRule alerts
-          disabled: {}
+          disabled:
+            # Ignore NodeBondingDegraded for instance 192.168.200.62:9100.
+            # The built-in rule is replaced by a custom copy in
+            # additionalPrometheusRulesMap that excludes that instance.
+            NodeBondingDegraded: true
           # KubeAPIDown: true
           # NodeRAIDDegraded: true
         ## Custom rules to override "for" and "severity" in defaultRules
@@ -40,6 +44,22 @@ spec:
           # AlertmanagerMembersInconsistent:
           #   for: 5m
           #   severity: "warning"
+
+        ## Custom recording or alerting rules to be deployed into the cluster.
+        ##
+        additionalPrometheusRulesMap:
+          node-bonding-degraded:
+            groups:
+              - name: node-exporter
+                rules:
+                  - alert: NodeBondingDegraded
+                    annotations:
+                      description: Bonding interface {{`{{`}} $labels.master {{`}}`}} on {{`{{`}} $labels.instance {{`}}`}} is in degraded state due to one or more slave failures.
+                      summary: Bonding interface is degraded.
+                    expr: (node_bonding_slaves{job="node-exporter",instance!="192.168.200.62:9100"} - node_bonding_active{job="node-exporter",instance!="192.168.200.62:9100"}) != 0
+                    for: 5m
+                    labels:
+                      severity: warning
 
         nodeExporter:
           enabled: true
