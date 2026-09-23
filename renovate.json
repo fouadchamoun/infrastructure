@@ -39,18 +39,6 @@
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*depName=(?<depName>.*?)(\\s*versioning=(?<versioning>.*?))?\\s*\\s*\\w+\\s*=\\s*\"?(?<currentValue>[^\"]+)\"?"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    },
-    {
-      "customType": "regex",
-      "description": "Update debian packages based on renovate comments in files",
-      "managerFilePatterns": [
-        "**/roles/**/tasks/*"
-      ],
-      "matchStrings": [
-        "#\\s*renovate:\\s*(?:registry=(?<registry>\\S+)\\s+)?(?:suite=(?<suite>\\S+)\\s+)?(?:components=(?<components>\\S+)\\s+)?(?:binaryArch=(?<binaryArch>\\S+)\\s+)?-\\s*(?<depName>\\S+?)=(?<currentValue>\\S+)"
-      ],
-      "registryUrlTemplate": "{{#if registry}}{{registry}}{{else}}https://deb.debian.org/debian{{/if}}?suite={{#if suite}}{{suite}}{{else}}stable{{/if}}&components={{#if components}}{{components}}{{else}}main,contrib,non-free{{/if}}&binaryArch={{#if binaryArch}}{{binaryArch}}{{else}}amd64{{/if}}",
-      "datasourceTemplate": "deb"
     }
   ],
   "packageRules": [
@@ -94,39 +82,9 @@
     },
     {
       "matchDatasources": [
-        "deb",
         "git-tags"
       ],
       "minimumReleaseAge": null
-    },
-    {
-      "matchDatasources": [
-        "deb"
-      ],
-      "matchPackageNames": [
-        "linstor-controller",
-        "linstor-satellite"
-      ],
-      "groupName": "linstor",
-      "changelogUrl": "https://github.com/LINBIT/linstor-server/blob/master/CHANGELOG.md"
-    },
-    {
-      "matchPackageNames": [
-        "linstor-proxmox"
-      ],
-      "changelogUrl": "https://github.com/LINBIT/linstor-proxmox/blob/master/CHANGELOG.md"
-    },
-    {
-      "matchPackageNames": [
-        "linstor-gui"
-      ],
-      "changelogUrl": "https://github.com/LINBIT/linstor-gui/blob/main/CHANGELOG.md"
-    },
-    {
-      "matchPackageNames": [
-        "linstor-client"
-      ],
-      "changelogUrl": "https://github.com/LINBIT/linstor-client/blob/master/CHANGELOG.md"
     },
     {
       "automerge": true,
