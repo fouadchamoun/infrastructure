@@ -6,7 +6,7 @@ locals {
   # renovate: datasource=github-releases depName=siderolabs/talos
   talos_version = "v1.13.0"
   # renovate: datasource=github-releases depName=kubernetes/kubernetes
-  kubernetes_version = "v1.35.0"
+  kubernetes_version = "v1.35.8"
 
   nodes = {
     controlplane = {
