@@ -94,7 +94,7 @@ resource "argocd_project" "cluster_bootstrap" {
     }
     destination {
       server    = "https://kubernetes.default.svc"
-      namespace = "kite-system"
+      namespace = "kubevirt"
     }
     destination {
       server    = "https://kubernetes.default.svc"

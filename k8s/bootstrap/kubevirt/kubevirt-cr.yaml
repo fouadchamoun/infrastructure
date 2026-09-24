@@ -1,0 +1,40 @@
+---
+apiVersion: kubevirt.io/v1
+kind: KubeVirt
+metadata:
+  name: kubevirt
+  namespace: kubevirt
+spec:
+  configuration:
+    ksmConfiguration:
+      nodeLabelSelector: {} # enabled on every node
+    developerConfiguration:
+      featureGates:
+        - LiveMigration
+        - NetworkBindingPlugins
+    smbios:
+      sku: "TalosCloud"
+      version: "v0.1.0"
+      manufacturer: "Talos Virtualization"
+      product: "talosvm"
+      family: "ccio"
+  workloadUpdateStrategy:
+    workloadUpdateMethods:
+    - LiveMigrate # enable if you have deployed either Longhorn or NFS-CSI for shared storage.
+  certificateRotateStrategy:
+    selfSigned:
+      ca:
+        duration: 8760h     # 1 year (default is 168h)
+        renewBefore: 720h   # Renew 30 days before expiration
+      server:
+        duration: 8760h     # 1 year (default is 24h)
+        renewBefore: 720h   # Renew 30 days before expiration
+  # Patch the DeamonSet as workaround for https://github.com/kubevirt/kubevirt/issues/16264
+  # Otherwise kubeapi will alert for client cert errors recorded in metric apiserver_client_certificate_expiration_seconds_bucket
+  customizeComponents:
+    patches:
+    - resourceType: DaemonSet
+      resourceName: virt-handler
+      patch: '{"spec":{"template":{"spec":{"containers":[{"name":"virt-handler","volumeMounts":[{"name":"kubevirt-virt-handler-certs-ext","mountPath":"/etc/virt-handler/clientcertificates","readOnly":true}]}],"volumes":[{"name":"kubevirt-virt-handler-certs-ext","secret":{"secretName":"kubevirt-virt-handler-certs"}}]}}}}'
+      type: strategic
+      
