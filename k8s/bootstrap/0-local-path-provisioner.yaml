@@ -1,0 +1,52 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: local-path-provisioner
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cluster-bootstrap
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: local-path-storage
+  sources:
+    - repoURL: ghcr.io/rancher/local-path-provisioner/charts
+      chart: local-path-provisioner
+      targetRevision: 0.0.37
+      helm:
+        valuesObject:
+          storageClass:
+            create: true
+            ## Set a provisioner name. If unset, a name will be generated.
+            # provisionerName: rancher.io/local-path
+            name: local-path
+            defaultClass: false
+            ## The default volume type this storage class creates, can be "local" or "hostPath"
+            defaultVolumeType: hostPath
+            reclaimPolicy: Delete
+            volumeBindingMode: WaitForFirstConsumer
+
+          nodePathMap:
+            - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+              paths:
+                - /var/mnt/local-path-provisioner
+
+          # Enable debug logging
+          debug: false
+
+  syncPolicy:
+    automated:
+      prune: true
+      allowEmpty: false
+      selfHeal: false
+    managedNamespaceMetadata:
+      labels: # The labels to set on the application namespace
+        pod-security.kubernetes.io/enforce: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - PruneLast=true
+      - ServerSideApply=true
+      - FailOnSharedResource=true
