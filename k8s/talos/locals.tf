@@ -4,7 +4,7 @@ locals {
   cluster_vip       = "192.168.200.70"
 
   # renovate: datasource=github-releases depName=siderolabs/talos
-  talos_version = "v1.13.0"
+  talos_version = "v1.13.9"
   # renovate: datasource=github-releases depName=kubernetes/kubernetes
   kubernetes_version = "v1.35.0"
 
