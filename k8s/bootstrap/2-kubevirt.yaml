@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubevirt
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: cluster-bootstrap
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kubevirt
+  sources:
+    - repoURL: 'https://github.com/fouadchamoun/infrastructure.git'
+      targetRevision: feat/kubevirt
+      path: k8s/bootstrap/kubevirt
+
+  syncPolicy:
+    automated:
+      prune: true
+      allowEmpty: false
+      selfHeal: false
+    managedNamespaceMetadata:
+      labels: # The labels to set on the application namespace
+        pod-security.kubernetes.io/enforce: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - PruneLast=true
+      - ServerSideApply=true
+      - FailOnSharedResource=true
