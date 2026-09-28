@@ -34,8 +34,8 @@ spec:
             # The built-in rule is replaced by a custom copy in
             # additionalPrometheusRulesMap that excludes that instance.
             NodeBondingDegraded: true
-          # KubeAPIDown: true
-          # NodeRAIDDegraded: true
+            # Ingore KubeClientCertificateExpiration because of spam from KubeVirt
+            KubeClientCertificateExpiration: true
         ## Custom rules to override "for" and "severity" in defaultRules
         ##
         customRules: {}
