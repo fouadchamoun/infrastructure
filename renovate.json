@@ -39,6 +39,18 @@
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*depName=(?<depName>.*?)(\\s*versioning=(?<versioning>.*?))?\\s*\\s*\\w+\\s*=\\s*\"?(?<currentValue>[^\"]+)\"?"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    },
+    {
+      "customType": "regex",
+      "description": "Update kubevirt operator version in kustomization.yaml",
+      "managerFilePatterns": [
+        "k8s/bootstrap/kubevirt/kustomization.yaml"
+      ],
+      "matchStrings": [
+        "https://github\\.com/kubevirt/kubevirt/releases/download/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)/kubevirt-operator\\.yaml"
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubevirt/kubevirt"
     }
   ],
   "packageRules": [
