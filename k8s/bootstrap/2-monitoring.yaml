@@ -96,6 +96,49 @@ spec:
               ingressClassName: traefik
               hosts:
                 - grafana.homelab.fouad.dev
+          grafana.ini:
+            feature_toggles:
+              grafanaAdvisor: true
+          dashboardProviders:
+            dashboardproviders.yaml:
+              apiVersion: 1
+              providers:
+                - name: 'default'
+                  orgId: 1
+                  folder: ''
+                  type: file
+                  disableDeletion: true
+                  editable: false
+                  options:
+                    path: /var/lib/grafana/dashboards/default
+          dashboards:
+            default:
+              cert-manager:
+                url: https://raw.githubusercontent.com/monitoring-mixins/website/master/assets/cert-manager/dashboards/cert-manager-overview.json
+                datasource: Prometheus
+              # Ref: https://grafana.com/grafana/dashboards/17457
+              cloudflared:
+                gnetId: 17457
+                revision: 6
+                datasource:
+                  - { name: DS_PROMETHEUS, value: Prometheus }
+              # Ref: https://grafana.com/grafana/dashboards/15549
+              node-problem-detector:
+                gnetId: 15549
+                revision: 1
+                datasource:
+                  - { name: DS_PROMETHEUS, value: Prometheus }
+              # Ref: https://github.com/kubevirt/monitoring/tree/main/dashboards/grafana
+              kubevirt-control-plane:
+                url: https://raw.githubusercontent.com/kubevirt/monitoring/main/dashboards/grafana/kubevirt-control-plane.json
+                datasource: Prometheus
+              # Ref: https://grafana.com/grafana/dashboards/11748
+              kubevirt-vm-info:
+                gnetId: 11748
+                revision: 1
+                datasource:
+                  - { name: DS_PROMETHEUS, value: Prometheus }
+
         prometheus:
           ingress:
               enabled: true
