@@ -1,0 +1,53 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: hass
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: hass
+      annotations:
+        kubevirt.io/allow-pod-bridge-network-live-migration: "true"
+
+    spec:
+      evictionStrategy: LiveMigrate
+      domain:
+        cpu:
+          cores: 4
+        resources:
+          requests:
+            memory: 2G
+        devices:
+          disks:
+            - name: hass-pvc
+              disk:
+                bus: virtio
+          interfaces:
+          - name: podnet
+            masquerade: {}
+      networks:
+        - name: podnet
+          pod: {}
+      volumes:
+        - name: hass-pvc
+          persistentVolumeClaim:
+            claimName: hass-pvc
+
+  dataVolumeTemplates:
+  - metadata:
+      name: hass-pvc
+    spec:
+      storage:
+        resources:
+          requests:
+            storage: 35Gi
+        accessModes:
+          - ReadWriteMany
+        volumeMode: Block
+        storageClassName: "longhorn-live-migratable"
+      source:
+        http:
+          url: "https://github.com/home-assistant/operating-system/releases/download/18.3/haos_ova-18.3.qcow2.xz"
