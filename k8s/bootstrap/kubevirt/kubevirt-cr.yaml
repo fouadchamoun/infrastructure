@@ -18,6 +18,7 @@ spec:
       manufacturer: "Talos Virtualization"
       product: "talosvm"
       family: "ccio"
+    vmRolloutStrategy: "LiveUpdate"
   workloadUpdateStrategy:
     workloadUpdateMethods:
     - LiveMigrate # enable if you have deployed either Longhorn or NFS-CSI for shared storage.
