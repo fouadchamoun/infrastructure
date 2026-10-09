@@ -51,6 +51,9 @@ ports:
     port: 443
     http3:
       enabled: true
+    transport:
+      respondingTimeouts:
+        readTimeout: 600s
   web:
     port: 80
     http:
