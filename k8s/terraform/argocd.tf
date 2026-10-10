@@ -98,6 +98,10 @@ resource "argocd_project" "cluster_bootstrap" {
     }
     destination {
       server    = "https://kubernetes.default.svc"
+      namespace = "cdi"
+    }
+    destination {
+      server    = "https://kubernetes.default.svc"
       namespace = "cnpg-system"
     }
   }
