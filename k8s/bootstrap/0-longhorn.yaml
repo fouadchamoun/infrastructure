@@ -70,7 +70,7 @@ spec:
             parameters:
               numberOfReplicas: "2"
               migratable: "true"
-              dataLocality: "true"
+              dataLocality: "best-effort"
               dataEngine: "v1"
 
   syncPolicy:
