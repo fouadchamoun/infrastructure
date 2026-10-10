@@ -22,7 +22,7 @@ terraform {
     }
     scaleway = {
       source = "scaleway/scaleway"
-      version = "2.83.1"
+      version = "2.84.0"
     }
   }
 }
