@@ -6,4 +6,6 @@ resources:
   - kubevirt-cr.yaml
   - https://github.com/kubevirt/containerized-data-importer/releases/download/v1.66.1/cdi-operator.yaml
   - cdi-cr.yaml
+  - https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/v4.3.1/deployments/multus-daemonset-thick.yml
+  - networkattachmentdefinition-cr.yaml
   

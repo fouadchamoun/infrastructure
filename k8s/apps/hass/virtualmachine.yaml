@@ -30,11 +30,12 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-          - name: podnet
-            masquerade: {}
+          - name: external
+            bridge: {} # We use the bridge interface.
       networks:
-        - name: podnet
-          pod: {}
+        - name: external
+          multus:
+            networkName: kubevirt/kubevirt-bridge-conf # This is the NetworkAttachmentDefinition.
       volumes:
         - name: hass-pvc
           persistentVolumeClaim:
