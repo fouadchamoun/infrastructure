@@ -264,7 +264,7 @@ spec:
   sources:
   - repoURL: ghcr.io/deliveryhero/helm-charts
     chart: node-problem-detector
-    targetRevision: 2.4.1
+    targetRevision: 2.4.2
     helm:
       valuesObject:
         settings:
