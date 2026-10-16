@@ -1,0 +1,84 @@
+TZ: "Europe/Paris"
+
+image:
+  repository: itzcrazykns1337/vane
+  tag: slim-v1.12.2
+  
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            SEARXNG_API_URL: http://{{ .Release.Name }}-searxng:8080
+
+securityContext:
+  container:
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+
+service:
+  main:
+    ports:
+      main:
+        protocol: http
+        port: 3000
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: vane.homelab.fouad.dev
+
+persistence:
+  data:
+    enabled: true
+    type: pvc
+    storageClass: longhorn
+    mountPath: "/home/vane/data"
+    size: 500Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 8000m
+    memory: 1024Mi
+
+configmap:
+  searxng-config:
+    enabled: true
+    data:
+      settings.yml: |
+        {{ .Files.Get "assets/searxng/settings.yml" | nindent 2 }}
+      limiter.toml: |
+        {{ .Files.Get "assets/searxng/limiter.toml" | nindent 2 }}
+      uwsgi.ini: |
+        {{ .Files.Get "assets/searxng/uwsgi.ini" | nindent 2 }}
+
+searxng:
+  workload:
+    main:
+      podSpec:
+        containers:
+          main:
+            env:
+              BASE_URL: ""
+  
+  persistence:
+    config:
+      enabled: true
+      type: configmap
+      objectName: "{{ .Release.Name }}-searxng-config"
+      expandObjectName: false
+      mountPath: /etc/searxng
+      items:
+        - key: settings.yml
+          path: settings.yml
+        - key: limiter.toml
+          path: limiter.toml
+        - key: uwsgi.ini
+          path: uwsgi.ini

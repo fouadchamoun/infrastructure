@@ -1,0 +1,14 @@
+---
+apiVersion: v2
+type: application
+name: vane
+version: 0.1.0
+
+dependencies:
+  - name: common
+    repository: oci://oci.trueforge.org/truecharts
+    version: 29.17.0
+    alias: ""
+  - name: searxng
+    repository: oci://oci.trueforge.org/truecharts
+    version: 12.0.2
