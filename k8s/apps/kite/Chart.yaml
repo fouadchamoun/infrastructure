@@ -7,4 +7,4 @@ version: 0.1.0
 dependencies:
   - name: kite
     repository: oci://ghcr.io/kite-org/charts
-    version: 0.15.1
+    version: 0.16.0
