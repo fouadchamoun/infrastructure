@@ -66,9 +66,10 @@
       "minimumReleaseAge": "30 days"
     },
     {
-      "description": "Ignore minimum release age for quay/ghcr Docker images in helm-values and argocd managers (no release date info)",
+      "description": "Ignore minimum release age for quay/ghcr Docker images in helm-values, helmv3 and argocd managers (no release date info)",
       "matchManagers": [
         "helm-values",
+        "helmv3",
         "argocd"
       ],
       "matchDatasources": [
