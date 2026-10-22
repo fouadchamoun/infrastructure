@@ -66,7 +66,7 @@
       "minimumReleaseAge": "30 days"
     },
     {
-      "description": "Ignore minimum release age for quay/ghcr Docker images in helm-values, helmv3 and argocd managers (no release date info)",
+      "description": "Ignore minimum release age for non docker.io images in helm-values, helmv3 and argocd managers (no release date info)",
       "matchManagers": [
         "helm-values",
         "helmv3",
@@ -77,8 +77,7 @@
       ],
       "minimumReleaseAge": null,
       "matchPackageNames": [
-        "quay.io/{/,}**",
-        "ghcr.io/{/,}**"
+        "!docker.io/**"
       ]
     },
     {
@@ -110,7 +109,7 @@
       "matchManagers": [
         "helmv3",
         "helm-values",
-        "argocd",
+        "argocd"
       ]
     },
     {
@@ -130,10 +129,10 @@
       "automerge": true,
       "matchUpdateTypes": [
         "patch",
-        "minor",
+        "minor"
       ],
       "matchManagers": [
-        "terraform",
+        "terraform"
       ]
     }
   ]
