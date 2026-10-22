@@ -299,7 +299,7 @@ spec:
   sources:
   - repoURL: https://kubernetes-sigs.github.io/descheduler
     chart: descheduler
-    targetRevision: 0.36.0
+    targetRevision: 0.37.0
     helm:
       valuesObject:
         successfulJobsHistoryLimit: 30
