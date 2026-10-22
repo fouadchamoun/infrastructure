@@ -1,6 +1,8 @@
 kite:
   fullnameOverride: kite-ng
   host: kite.homelab.fouad.dev
+  deploymentStrategy:
+    type: Recreate
   db:
     sqlite:
       persistence:
