@@ -7,4 +7,4 @@ version: 0.1.0
 dependencies:
   - name: maintainerr
     repository: oci://oci.trueforge.org/truecharts
-    version: 7.33.0
+    version: 8.1.0
