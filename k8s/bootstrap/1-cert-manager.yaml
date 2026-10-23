@@ -14,7 +14,7 @@ spec:
   sources:
     - repoURL: quay.io/jetstack/charts
       chart: cert-manager
-      targetRevision: v1.21.2
+      targetRevision: v1.21.3
       helm:
         releaseName: cert-manager
         valuesObject:
