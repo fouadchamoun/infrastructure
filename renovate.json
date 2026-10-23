@@ -135,6 +135,16 @@
       "matchManagers": [
         "terraform"
       ]
+    },
+    {
+      "matchManagers": [
+        "helmv3"
+      ],
+      "matchPackageNames": [
+        "!oci.trueforge.org/truecharts/common",
+        "oci.trueforge.org/**"
+      ],
+      "changelogUrl": "https://github.com/trueforge-org/websites/blob/main/truecharts/src/content/docs/charts/stable/{{{depName}}}/CHANGELOG.md"
     }
   ]
 }
