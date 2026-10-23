@@ -10,7 +10,7 @@ on:
       - "k8s/charts/**"
 
 jobs:
-  build:
+  argocd-diff-preview:
     runs-on: ubuntu-latest
     permissions:
       contents: read
