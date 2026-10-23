@@ -10,7 +10,7 @@ on:
       - "k8s/charts/**"
 
 jobs:
-  build:
+  argocd-diff-preview:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -53,7 +53,7 @@ jobs:
             -v $(pwd)/output:/output \
             -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
             -e REPO=${{ github.repository }} \
-            dagandersen/argocd-diff-preview:v0.2.14 \
+            dagandersen/argocd-diff-preview:v0.2.17 \
             --argocd-config-dir /argocd-config \
             --argocd-chart-version ${{ steps.argocd-version.outputs.base }}
 
@@ -73,7 +73,7 @@ jobs:
             -v $(pwd)/output-base:/output \
             -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
             -e REPO=${{ github.repository }} \
-            dagandersen/argocd-diff-preview:v0.2.14 \
+            dagandersen/argocd-diff-preview:v0.2.17 \
             --argocd-config-dir /argocd-config \
             --argocd-chart-version ${{ steps.argocd-version.outputs.base }} \
             --output-folder /output \
@@ -90,7 +90,7 @@ jobs:
             -v $(pwd)/output-target:/output \
             -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
             -e REPO=${{ github.repository }} \
-            dagandersen/argocd-diff-preview:v0.2.14 \
+            dagandersen/argocd-diff-preview:v0.2.17 \
             --argocd-config-dir /argocd-config \
             --argocd-chart-version ${{ steps.argocd-version.outputs.target }} \
             --output-folder /output \

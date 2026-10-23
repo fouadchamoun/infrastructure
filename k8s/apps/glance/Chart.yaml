@@ -7,5 +7,5 @@ version: 0.1.0
 dependencies:
   - name: common
     repository: oci://oci.trueforge.org/truecharts
-    version: 29.17.0
+    version: 29.21.3
     alias: ""

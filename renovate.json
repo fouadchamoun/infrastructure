@@ -127,6 +127,7 @@
     },
     {
       "automerge": true,
+      "ignoreTests": true,
       "matchUpdateTypes": [
         "patch",
         "minor"
