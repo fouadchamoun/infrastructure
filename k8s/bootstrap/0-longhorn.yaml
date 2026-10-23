@@ -28,6 +28,7 @@ spec:
             storageOverProvisioningPercentage: 100
             storageMinimalAvailablePercentage: 25
             defaultDataLocality: best-effort
+            concurrentAutomaticEngineUpgradePerNodeLimit: 3
           
           ingress:
             enabled: true
