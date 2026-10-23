@@ -141,21 +141,20 @@
         "helmv3"
       ],
       "matchPackageNames": [
-        "!oci.trueforge.org/truecharts/common",
-        "oci.trueforge.org/**"
+        "oci.trueforge.org/truecharts/common"
       ],
       "sourceUrl": "https://github.com/trueforge-org/websites",
-      "sourceDirectory": "truecharts/src/content/docs/charts/stable/{{{depName}}}/"
+      "sourceDirectory": "truecharts/src/content/docs-common/"
     },
     {
       "matchManagers": [
         "helmv3"
       ],
       "matchPackageNames": [
-        "oci.trueforge.org/truecharts/common"
+        "oci.trueforge.org/truecharts/!(common)"
       ],
       "sourceUrl": "https://github.com/trueforge-org/websites",
-      "sourceDirectory": "truecharts/src/content/docs-common"
+      "sourceDirectory": "truecharts/src/content/docs/charts/stable/{{{depName}}}/"
     }
   ]
 }
