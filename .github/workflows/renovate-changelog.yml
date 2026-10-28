@@ -15,10 +15,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'helm-chart')
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: write
+    permissions: write-all
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -29,8 +26,10 @@ jobs:
       - name: Analyze upstream image changelogs
         uses: anomalyco/opencode/github@77fc88c8ade8e5a620ebbe1197f3a572d29ae91a # latest
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALEWAY_API_KEY: ${{ secrets.SCALEWAY_API_KEY }}
         with:
+          use_github_token: true
           model: scaleway/deepseek-v4.1-flash
           share: false
           prompt: |
