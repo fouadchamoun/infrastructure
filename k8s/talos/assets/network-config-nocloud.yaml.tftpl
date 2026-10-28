@@ -1,0 +1,29 @@
+---
+apiVersion: v1alpha1
+kind: HostnameConfig
+auto: "off"
+hostname: ${hostname}
+
+---
+apiVersion: v1alpha1
+kind: LinkAliasConfig
+name: ethSel0
+selector:
+  match: glob("0*", link.bus_path)
+---
+apiVersion: v1alpha1
+kind: BridgeConfig
+name: br0
+links:
+  - ethSel0
+stp:
+  enabled: false
+addresses:
+  - address: ${ip_cidr}
+routes:
+  - gateway: ${ip_gateway}
+---
+apiVersion: v1alpha1
+kind: Layer2VIPConfig
+link: br0 # Name of the link to assign the VIP to.
+name: ${ip_vip} # IP address to be advertised as a Layer 2 VIP.

@@ -1,0 +1,9 @@
+dependencies:
+- name: common
+  repository: oci://oci.trueforge.org/truecharts
+  version: 29.17.0
+- name: searxng
+  repository: oci://oci.trueforge.org/truecharts
+  version: 12.0.2
+digest: sha256:561077fcac48d3543c59434e75baacab6f54cb0d54e640ad38e18c09b1485bed
+generated: "2026-10-16T14:54:59.920045+02:00"

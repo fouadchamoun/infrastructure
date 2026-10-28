@@ -1,0 +1,61 @@
+TZ: "Europe/Paris"
+
+image:
+  repository: ghcr.io/ovumcy/ovumcy-web
+  tag: v1.9.2
+
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            MY_ENV_VAR: 
+
+service:
+  main:
+    ports:
+      main:
+        protocol: http
+        port: 
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: ovumcy.homelab.fouad.dev
+
+persistence:
+  data:
+    enabled: true
+    type: pvc
+    storageClass: longhorn
+    mountPath: ""
+    size: 500Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+# extraTpl:
+# - |
+#   apiVersion: external-secrets.io/v1
+#   kind: ExternalSecret
+#   metadata:
+#     name: 
+#   spec:
+#     secretStoreRef:
+#         kind: ClusterSecretStore
+#         name: scw-sm
+#     target:
+#         name: 
+#     refreshInterval: 60s
+#     data:
+#       - secretKey: api-token
+#         remoteRef:
+#           key: path:/
+#           property: token

@@ -1,0 +1,6 @@
+dependencies:
+- name: kite
+  repository: oci://ghcr.io/kite-org/charts
+  version: 0.16.0
+digest: sha256:5b97bd71a10c583a6ff0711e058338213240eabfcb2000ba1b5b5a9ce2ea4e0c
+generated: "2026-10-22T09:58:36.472163+02:00"

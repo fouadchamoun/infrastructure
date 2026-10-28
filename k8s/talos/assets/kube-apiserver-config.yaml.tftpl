@@ -1,0 +1,8 @@
+---
+apiVersion: v1alpha1
+kind: KubeAPIServerConfig
+extraArgs:
+    default-not-ready-toleration-seconds: "30"
+    default-unreachable-toleration-seconds: "30"
+certExtraSANs:
+    - "k8s.homelab.fouad.dev"
