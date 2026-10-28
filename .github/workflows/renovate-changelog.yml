@@ -1,0 +1,57 @@
+name: Renovate Changelog
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+concurrency:
+  group: renovate-changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    if: contains(github.event.pull_request.labels.*.name, 'helm-chart')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Analyze upstream image changelogs
+        uses: anomalyco/opencode/github@77fc88c8ade8e5a620ebbe1197f3a572d29ae91a # latest
+        env:
+          SCALEWAY_API_KEY: ${{ secrets.SCALEWAY_API_KEY }}
+        with:
+          model: scaleway/deepseek-v4.1-flash
+          share: false
+          prompt: |
+            # Role
+            You are analyzing a Renovate Pull Request to surface the upstream Docker image changes that ride
+            along with a Helm chart update, and fetch the correct changelogs for those images.
+
+            # Steps
+            1. Confirm from the PR description that the PR updates a Helm chart.
+              Identify the chart name and the version change (old -> new).
+            2. In the Release Notes section, find upstream Docker image references with
+              their NEW version/tag.
+            3. Usually, the release notes include commit urls for these image updates.
+            4. Determine the effective upstream image version change(s) (old -> new).
+            5. For each changed image, fetch the correct changelog from its own project:
+              prefer GitHub Releases/compare URLs, then Docker Hub / Quay / GHCR, then
+              project docs. Use curl/webfetch (public sources) or gh.
+            6. Output the changelog for each image as is, and without other commentary, in a comment on the PR.
+            7. If no upstream image version change can be found, simply state that in the comment.
+
+            # Constraints
+            - Do NOT edit the PR description or any repository file.
+            - Do NOT create branches, commit, or push.
+            - You have a timeout of 15 minutes to complete the task. No need to think too much.
