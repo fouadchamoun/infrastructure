@@ -10,7 +10,7 @@ terraform {
   required_providers {
     hcp = {
       source = "hashicorp/hcp"
-      version = "0.114.0"
+      version = "0.115.0"
     }
     sops = {
       source = "carlpett/sops"
