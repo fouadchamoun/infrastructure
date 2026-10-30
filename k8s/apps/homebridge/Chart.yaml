@@ -7,4 +7,4 @@ version: 0.1.0
 dependencies:
   - name: homebridge
     repository: oci://oci.trueforge.org/truecharts
-    version: 13.4.0
+    version: 14.1.6
