@@ -17,7 +17,6 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      pull-requests: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -27,8 +26,17 @@ jobs:
       - name: Install OpenCode (pinned version)
         run: npm install --global @opencode/cli@2.2.5
 
+      - name: Get GitHub App token
+        id: bot-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.OPENCODE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.OPENCODE_BOT_PRIVATE_KEY }}
+          repositories: ${{ github.repository }}
+
       - name: Analyze upstream image changelogs
         env:
+          GITHUB_TOKEN: ${{ steps.bot-token.outputs.token }}
           SCALEWAY_API_KEY: ${{ secrets.SCALEWAY_API_KEY }}
         run: |
           opencode run --standalone --model scaleway/deepseek-v4.1-flash-1017 <<'EOF'
@@ -56,4 +64,5 @@ jobs:
           - Do NOT create branches, commit, or push.
           - You are running in a GitHub Actions environment in a public repo, do not run commands that could compromise security (ex. print secrets).
           - You have a timeout of 15 minutes to complete the task. No need to think too much.
+          - use `gh pr comment` with `--edit-last --create-if-none` so the comment is updated if it already exists.
           EOF
