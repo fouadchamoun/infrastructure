@@ -47,11 +47,13 @@ jobs:
           5. For each changed image, fetch the correct changelog from its own project:
             prefer GitHub Releases/compare URLs, then Docker Hub / Quay / GHCR, then
             project docs. Use curl/webfetch (public sources) or gh.
-          6. Output the changelog for each image as is, and without other commentary, in a comment on the PR.
-          7. If no upstream image version change can be found, simply state that in the comment.
+          6. If upstream image itself is a "wrapper" for an upstream software (ex. homebridge-docker), then also fetch the changelog for that software as well.
+          7. Output the changelog for each image as is, and without other commentary, in a comment on the PR.
+          8. If no upstream image version change can be found, simply state that in the comment.
 
           # Constraints
           - Do NOT edit the PR description or any repository file.
           - Do NOT create branches, commit, or push.
+          - You are running in a GitHub Actions environment in a public repo, do not run commands that could compromise security (ex. print secrets).
           - You have a timeout of 15 minutes to complete the task. No need to think too much.
           EOF
