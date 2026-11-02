@@ -7,4 +7,4 @@ version: 0.1.0
 dependencies:
   - name: immich
     repository: oci://oci.trueforge.org/truecharts
-    version: 33.17.17
+    version: 33.22.6
