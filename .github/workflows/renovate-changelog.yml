@@ -58,6 +58,8 @@ jobs:
           6. If upstream image itself is a "wrapper" for an upstream software (ex. homebridge-docker), then also fetch the changelog for that software as well.
           7. Output the changelog for each image as is, and without other commentary, in a comment on the PR.
           8. If no upstream image version change can be found, simply state that in the comment.
+          9. If the changelog contains mentions of usernames, redact them, otherwise they will be mentioned in the PR comment and recieve unwanted notifications.
+            Also redact issue/PR links in the changelog entries, because we don't our PR to be mentioned in them by Github.
 
           # Constraints
           - Do NOT edit the PR description or any repository file.
