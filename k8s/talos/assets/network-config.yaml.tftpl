@@ -6,23 +6,31 @@ hostname: ${hostname}
 
 ---
 apiVersion: v1alpha1
-kind: ResolverConfig
-nameservers:
-  - address: 1.1.1.1
-  - address: 1.0.0.1
-searchDomains:
-  disableDefault: false
-
----
-apiVersion: v1alpha1
 kind: LinkAliasConfig
-name: ethSel0
+name: sfp%d
 selector:
-  match: glob("0*", link.bus_path)
+  match: link.driver == "i40e"
 ---
 apiVersion: v1alpha1
-kind: LinkConfig
-name: ethSel0
+kind: BondConfig
+name: bond0
+links:
+  - sfp0
+  - sfp1
+bondMode: 802.3ad
+lacpRate: slow
+miimon: 100
+updelay: 200
+downdelay: 200
+xmitHashPolicy: layer2
+---
+apiVersion: v1alpha1
+kind: BridgeConfig
+name: br0
+links:
+  - bond0
+stp:
+  enabled: false
 addresses:
   - address: ${ip_cidr}
 routes:
@@ -30,5 +38,5 @@ routes:
 ---
 apiVersion: v1alpha1
 kind: Layer2VIPConfig
-link: ethSel0 # Name of the link to assign the VIP to.
+link: br0 # Name of the link to assign the VIP to.
 name: ${ip_vip} # IP address to be advertised as a Layer 2 VIP.

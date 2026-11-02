@@ -52,6 +52,15 @@ ephemeral "talos_client_configuration" "this" {
   nodes           = [for node in local.nodes.controlplane : node.ip]
 }
 
+# Generate kubeconfig without storing in state
+ephemeral "talos_cluster_kubeconfig" "this" {
+  cluster_name    = local.cluster_name
+  machine_secrets = local.machine_secrets
+  endpoint        = "https://k8s.homelab.fouad.dev:6443"
+
+  not_before      = terraform_data.not_before.output
+}
+
 resource "terraform_data" "talosconfig" {
   triggers_replace = terraform_data.not_before.output
 
@@ -60,17 +69,25 @@ resource "terraform_data" "talosconfig" {
   }
 }
 
+resource "terraform_data" "kubeconfig" {
+  triggers_replace = terraform_data.not_before.output
+
+  provisioner "local-exec" {
+    command = "echo \"${ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw}\" > $HOME/.kube/configs/fouadflix-talos"
+  }
+}
+
 # Step 4: Generate machine configuration
-resource "talos_image_factory_schematic" "this" {
+resource "talos_image_factory_schematic" "baremetal" {
   schematic = yamlencode(
     {
       customization = {
         extraKernelArgs = []
         systemExtensions = {
           officialExtensions = [
-            "siderolabs/drbd",
             "siderolabs/intel-ucode",
-            "siderolabs/qemu-guest-agent",
+            "siderolabs/mei",
+            "siderolabs/xe",
             "siderolabs/thunderbolt",
             "siderolabs/iscsi-tools",
             "siderolabs/util-linux-tools"
@@ -91,40 +108,6 @@ ephemeral "talos_machine_configuration" "controlplane" {
   machine_type     = "controlplane"
   talos_version    = local.talos_version
   kubernetes_version = local.kubernetes_version
-
-  config_patches = flatten([
-    local.common_patches,
-    templatefile("${path.module}/assets/network-config.yaml.tftpl", {
-      hostname = each.key
-      ip_cidr = "${each.value.ip}/24"
-      ip_gateway = "192.168.200.1"
-      ip_vip = local.cluster_vip
-    }),
-    templatefile("${path.module}/assets/user-volume-config.yaml.tftpl", {})
-  ])
-}
-
-ephemeral "talos_machine_configuration" "controlplane_bare_metal" {
-  for_each = local.nodes.controlplane_bare_metal
-
-  cluster_name     = local.cluster_name
-  cluster_endpoint = local.cluster_endpoint
-  machine_secrets  = local.machine_secrets
-
-  machine_type     = "controlplane"
-  talos_version    = local.talos_version
-  kubernetes_version = local.kubernetes_version
-
-  config_patches = flatten([
-    local.common_patches,
-    templatefile("${path.module}/assets/network-config.yaml.tftpl", {
-      hostname = each.key
-      ip_cidr = "${each.value.ip}/24"
-      ip_gateway = "192.168.200.1"
-      ip_vip = local.cluster_vip
-    }),
-    templatefile("${path.module}/assets/user-volume-config.yaml.tftpl", {})
-  ])
 }
 
 # Step 5: Apply configuration using write-only input
@@ -134,16 +117,29 @@ resource "talos_machine_configuration_apply" "controlplane" {
   client_configuration_wo        = ephemeral.talos_client_configuration.this.client_configuration
   machine_configuration_input_wo = ephemeral.talos_machine_configuration.controlplane[each.key].machine_configuration
   node                           = each.key
-  endpoint                       = each.value.ip
-  apply_mode                     = "staged_if_needing_reboot"
-}
+  endpoint                       = each.value.control_ip
 
-resource "talos_machine_configuration_apply" "controlplane_bare_metal" {
-  for_each = local.nodes.controlplane_bare_metal
-
-  client_configuration_wo        = ephemeral.talos_client_configuration.this.client_configuration
-  machine_configuration_input_wo = ephemeral.talos_machine_configuration.controlplane_bare_metal[each.key].machine_configuration
-  node                           = each.key
-  endpoint                       = each.value.ip
-  apply_mode                     = "staged_if_needing_reboot"
+  config_patches = flatten([
+    templatefile("${path.module}/assets/kube-node-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/kube-proxy-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/kube-apiserver-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/kube-scheduler-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/kube-controller-manager-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/sysctl-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/kubelet-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/resolver-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/cri-customization-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/user-volume-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/filesystem-trim-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/unattended-install-config.yaml.tftpl", {
+      installer_image = data.talos_image_factory_urls.baremetal.urls.installer
+      install_disk_selector = "disk.transport == \"nvme\" && disk.size <= 500u * GB"
+    }),
+    templatefile("${path.module}/assets/network-config.yaml.tftpl", {
+      hostname = each.key
+      ip_cidr = "${each.value.ip}/24"
+      ip_gateway = "192.168.200.1"
+      ip_vip = local.cluster_vip
+    }),
+  ])
 }
