@@ -1,0 +1,123 @@
+TZ: "Europe/Paris"
+
+image:
+  repository: lfnovo/open_notebook
+  tag: 1.15.0
+
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            OPEN_NOTEBOOK_ENCRYPTION_KEY:
+              secretKeyRef:
+                expandObjectName: false
+                name: "open-notebook-credentials"
+                key: encryption_key
+
+            SURREAL_URL: ws://{{ .Release.Name }}-surrealdb:8000/rpc
+            SURREAL_NAMESPACE: open_notebook
+            SURREAL_DATABASE: open_notebook            
+            SURREAL_USER:
+              secretKeyRef:
+                expandObjectName: false
+                name: "open-notebook-credentials"
+                key: surrealdb_username
+            SURREAL_PASSWORD:
+              secretKeyRef:
+                expandObjectName: false
+                name: "open-notebook-credentials"
+                key: surrealdb_password
+            
+            API_URL: https://open-notebook.homelab.fouad.dev
+            CORS_ORIGINS: https://open-notebook.homelab.fouad.dev
+
+            FIRECRAWL_API_KEY:
+              secretKeyRef:
+                expandObjectName: false
+                name: "open-notebook-credentials"
+                key: firecrawl_api_key
+
+service:
+  main:
+    ports:
+      main:
+        protocol: http
+        port: 8502
+      # api:
+      #   protocol: http
+      #   port: 5055
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: open-notebook.homelab.fouad.dev
+
+persistence:
+  data:
+    enabled: true
+    type: pvc
+    storageClass: longhorn
+    mountPath: "/app/data"
+    size: 10Gi
+
+
+extraTpl:
+- |
+  apiVersion: external-secrets.io/v1
+  kind: ExternalSecret
+  metadata:
+    name: "open-notebook-credentials"
+  spec:
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: scw-sm
+    target:
+      name: "open-notebook-credentials"
+    refreshInterval: 1h
+    dataFrom:
+    - extract:
+        key: path:/open-notebook/credentials
+
+surrealdb:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+
+  persistence:
+    enabled: true
+    storageClassName: longhorn
+    mountPath: /data
+    size: 10Gi
+
+  podSecurityContext:
+    # Official surrealdb/surrealdb images run as USER nonroot (uid/gid 65532):
+    #   https://github.com/surrealdb/surrealdb/blob/main/docker/Dockerfile
+    # When persistence.enabled mounts a PVC over /data, many CSI/local-path
+    # provisioners create the volume as root:root, so the process cannot write
+    # (Permission denied). Set fsGroup to the image gid so Kubernetes chowns the
+    # volume for the nonroot group.
+    fsGroup: 65532
+    runAsUser: 65532
+    runAsGroup: 65532
+
+  surrealdb:
+    path: surrealkv:/data/data.db
+
+  podExtraEnv:
+    - name: TZ
+      value: "Europe/Paris"
+    # - name: SURREAL_EXPERIMENTAL_GRAPHQL
+    #   value: "true"
+    - name: SURREAL_USER
+      valueFrom:
+        secretKeyRef:
+          name: "open-notebook-credentials"
+          key: surrealdb_username
+    - name: SURREAL_PASS
+      valueFrom:
+        secretKeyRef:
+          name: "open-notebook-credentials"
+          key: surrealdb_password
