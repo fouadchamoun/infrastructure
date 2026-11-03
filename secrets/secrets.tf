@@ -15,7 +15,7 @@ resource "scaleway_secret" "main" {
 resource "scaleway_secret_version" "v1" {
   for_each = local.secret_keys_set
 
-  secret_id   = scaleway_secret.main[each.key].id
-  data_wo     = jsonencode(yamldecode(ephemeral.sops_file.secrets.raw)[each.key])
-  data_wo_version = "1"
+  secret_id       = scaleway_secret.main[each.key].id
+  data_wo         = jsonencode(yamldecode(ephemeral.sops_file.secrets.raw)[each.key])
+  data_wo_version = parseint(substr(sha256(jsonencode(yamldecode(file("secrets.sops.yaml"))[each.key])), 0, 8), 16)
 }
