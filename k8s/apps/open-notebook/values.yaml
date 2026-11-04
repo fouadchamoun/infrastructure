@@ -2,7 +2,7 @@ TZ: "Europe/Paris"
 
 image:
   repository: lfnovo/open_notebook
-  tag: 1.15.0
+  tag: 1.15.1
 
 workload:
   main:
