@@ -1,0 +1,20 @@
+open-webui:
+  # No bundled Ollama/pipelines/Redis - slim deployment
+  ollama:
+    enabled: false
+  pipelines:
+    enabled: false
+  websocket:
+    manager: ""
+    redis:
+      enabled: false
+
+  ingress:
+    enabled: true
+    class: traefik
+    host: open-webui.homelab.fouad.dev
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: longhorn
