@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   changelog:
-    if: contains(github.event.pull_request.labels.*.name, 'helm-chart')
+    if: contains(github.event.pull_request.labels.*.name, 'needs-changelog-workflow')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

@@ -55,18 +55,20 @@
   ],
   "packageRules": [
     {
-      "description": "Apply 30-day minimum release age for Talos and Kubernetes updates",
+      "description": "Apply 30-day minimum release age for Talos and Kubernetes updates and allow only next-minor.",
+      "minimumReleaseAge": "30 days",
+      "allowedVersions": "<={{major}}.{{add minor 1}}",
       "matchManagers": [
         "custom.regex"
       ],
       "matchPackageNames": [
         "siderolabs/talos",
         "kubernetes/kubernetes"
-      ],
-      "minimumReleaseAge": "30 days"
+      ]
     },
     {
       "description": "Ignore minimum release age for non docker.io images in helm-values, helmv3 and argocd managers (no release date info)",
+      "minimumReleaseAge": null,
       "matchManagers": [
         "helm-values",
         "helmv3",
@@ -75,31 +77,29 @@
       "matchDatasources": [
         "docker"
       ],
-      "minimumReleaseAge": null,
       "matchPackageNames": [
         "!docker.io/**"
       ]
     },
     {
-      "description": "Use regex versioning for homebridge Docker image date tags",
-      "matchDatasources": [
-        "docker"
-      ],
-      "matchPackageNames": [
-        "homebridge/homebridge"
-      ],
-      "versioning": "regex:^(?<major>\\d{4})-(?<minor>\\d{2})-(?<patch>\\d{2})$",
-      "separateMajorMinor": false,
-      "separateMinorPatch": false
-    },
-    {
+      "minimumReleaseAge": null,
       "matchDatasources": [
         "git-tags"
+      ]
+    },
+    {
+      "description": "Tag PRs that update Helm charts so the changelog workflow can run on them",
+      "labels": [
+        "needs-changelog-workflow"
       ],
-      "minimumReleaseAge": null
+      "matchManagers": [
+        "helmv3",
+        "argocd"
+      ]
     },
     {
       "automerge": true,
+      "labels": [],
       "matchUpdateTypes": [
         "patch"
       ],
@@ -155,16 +155,6 @@
       ],
       "sourceUrl": "https://github.com/trueforge-org/websites",
       "sourceDirectory": "truecharts/src/content/docs/charts/stable/{{{depName}}}/"
-    },
-    {
-      "description": "Tag PRs that update Helm charts so the changelog workflow can filter on them",
-      "matchManagers": [
-        "helmv3",
-        "argocd"
-      ],
-      "addLabels": [
-        "helm-chart"
-      ]
     }
   ]
 }
