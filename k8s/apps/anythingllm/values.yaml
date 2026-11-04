@@ -1,0 +1,23 @@
+anythingllm:
+  # Chart v1.0.0 renders `strategy` inside the pod spec (invalid under ArgoCD's
+  # ServerSideApply). The empty string makes the template's `with .Values.strategy`
+  # block emit nothing; drop once upstream fixes it.
+  strategy: ""
+
+  persistentVolume:
+    storageClass: longhorn
+    size: 10Gi
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+  ingress:
+    enabled: true
+    className: traefik
+    hosts:
+      - host: anythingllm.homelab.fouad.dev
+        paths:
+          - path: /
+            pathType: ImplementationSpecific

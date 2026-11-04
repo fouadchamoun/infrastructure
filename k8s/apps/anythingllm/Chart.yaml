@@ -1,0 +1,10 @@
+---
+apiVersion: v2
+type: application
+name: anythingllm
+version: 0.1.0
+
+dependencies:
+  - name: anythingllm
+    repository: oci://ghcr.io/mintplex-labs/helm-charts
+    version: 1.0.0
