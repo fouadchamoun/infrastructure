@@ -42,15 +42,13 @@
     },
     {
       "customType": "regex",
-      "description": "Update kubevirt operator version in kustomization.yaml",
+      "description": "Update remote resource versions in the kubevirt kustomization.yaml from renovate comments",
       "managerFilePatterns": [
         "k8s/bootstrap/kubevirt/kustomization.yaml"
       ],
       "matchStrings": [
-        "https://github\\.com/kubevirt/kubevirt/releases/download/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)/kubevirt-operator\\.yaml"
-      ],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": "kubevirt/kubevirt"
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\s*\\n\\s*-\\s+https?://[^\\s]+/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)(?:/|\\s|$)"
+      ]
     }
   ],
   "packageRules": [
