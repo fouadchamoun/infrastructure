@@ -94,7 +94,7 @@ extraTpl:
       template:
         engineVersion: v2
         data:
-          SECRET_KEY: "{{ .password }}"
+          SECRET_KEY: "{{ "{{ .password }}" }}"
     dataFrom:
     - sourceRef:
         generatorRef:
