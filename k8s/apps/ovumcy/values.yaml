@@ -91,10 +91,10 @@ extraTpl:
     refreshPolicy: CreatedOnce
     target:
       name: ovumcy-credentials
-    template:
-      engineVersion: v2
-      data:
-        SECRET_KEY: "{{ .password }}"
+      template:
+        engineVersion: v2
+        data:
+          SECRET_KEY: "{{ .password }}"
     dataFrom:
     - sourceRef:
         generatorRef:
