@@ -1,0 +1,103 @@
+TZ: "Europe/Paris"
+
+image:
+  repository: ghcr.io/ovumcy/ovumcy-web
+  tag: v1.9.2
+
+workload:
+  main:
+    type: Deployment
+    # SQLite on a shared PVC: exactly one writer
+    replicas: 1
+    strategy: Recreate
+    podSpec:
+      containers:
+        main:
+          env:
+            PORT: "8080"
+            DEFAULT_LANGUAGE: "en"
+            REGISTRATION_MODE: "open"
+            DB_DRIVER: "sqlite"
+            DB_PATH: "/app/data/ovumcy.db"
+            COOKIE_SECURE: "true"
+            TRUST_PROXY_ENABLED: "true"
+            PROXY_HEADER: "X-Forwarded-For"
+            # shortcut: TRUSTED_PROXIES stays on the image default (loopback), so
+            # per-IP rate limits see Traefik's address. Set the pod CIDR here only
+            # if per-IP rate limiting matters.
+
+            SECRET_KEY:
+              secretKeyRef:
+                expandObjectName: false
+                name: "ovumcy-credentials"
+                key: SECRET_KEY
+
+service:
+  main:
+    ports:
+      main:
+        protocol: http
+        port: 8080
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: "{{ .Release.Name }}.homelab.fouad.dev"
+
+persistence:
+  # Calendar-data + SQLite DB; the restore fence at /app/fence must stay a
+  # SEPARATE volume (see upstream docker-compose.yml) - never merge them.
+  data:
+    enabled: true
+    type: pvc
+    storageClass: longhorn
+    mountPath: /app/data
+    size: 1Gi
+  fence:
+    enabled: true
+    type: pvc
+    storageClass: longhorn
+    mountPath: /app/fence
+    size: 100Mi
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+extraTpl:
+- |
+  apiVersion: generators.external-secrets.io/v1alpha1
+  kind: Password
+  metadata:
+    name: ovumcy-secret-key
+  spec:
+    # 32 bytes hex = 64 chars, ovumcy's recommended SECRET_KEY shape
+    length: 32
+    encoding: hex
+
+- |
+  apiVersion: external-secrets.io/v1
+  kind: ExternalSecret
+  metadata:
+    name: ovumcy-credentials
+  spec:
+    # Generate once and pin it: without CreatedOnce the generator would produce
+    # a new value on every sync, rotating the signing key and signing everyone out.
+    refreshPolicy: CreatedOnce
+    target:
+      name: ovumcy-credentials
+    template:
+      engineVersion: v2
+      data:
+        SECRET_KEY: "{{ .password }}"
+    dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: Password
+          name: ovumcy-secret-key
