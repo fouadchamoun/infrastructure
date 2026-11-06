@@ -22,9 +22,9 @@ workload:
             COOKIE_SECURE: "true"
             TRUST_PROXY_ENABLED: "true"
             PROXY_HEADER: "X-Forwarded-For"
-            # shortcut: TRUSTED_PROXIES stays on the image default (loopback), so
-            # per-IP rate limits see Traefik's address. Set the pod CIDR here only
-            # if per-IP rate limiting matters.
+            # Must cover the reverse proxy's source besides loopback, or the app ignores
+            # X-Forwarded-Proto: https and the CSRF check 403s every login/registration.
+            TRUSTED_PROXIES: "10.244.0.0/16"
 
             SECRET_KEY:
               secretKeyRef:
