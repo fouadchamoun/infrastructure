@@ -44,6 +44,7 @@ jobs:
       - name: Generate Diff (standard)
         if: steps.argocd-version.outputs.upgrade == 'false'
         run: |
+          # Drop version-stamp label churn (app.kubernetes.io/version, chart, app, helm.sh/chart).
           docker run \
             --network=host \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -53,6 +54,7 @@ jobs:
             -v $(pwd)/output:/output \
             -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
             -e REPO=${{ github.repository }} \
+            -e DIFF_IGNORE='(^|[[:space:]])(app\.kubernetes\.io/version|chart|app|helm\.sh/chart): ' \
             dagandersen/argocd-diff-preview:v0.2.17 \
             --argocd-config-dir /argocd-config \
             --argocd-chart-version ${{ steps.argocd-version.outputs.base }}
