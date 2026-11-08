@@ -97,7 +97,7 @@
     },
     {
       "automerge": true,
-      "labels": [],
+      "labels": ["automerge"],
       "matchUpdateTypes": [
         "patch"
       ],
@@ -112,6 +112,7 @@
     },
     {
       "automerge": true,
+      "labels": ["automerge"],
       "matchUpdateTypes": [
         "patch"
       ],
@@ -125,6 +126,7 @@
     },
     {
       "automerge": true,
+      "labels": ["automerge"],
       "ignoreTests": true,
       "matchUpdateTypes": [
         "patch",
