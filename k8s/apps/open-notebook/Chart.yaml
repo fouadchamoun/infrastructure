@@ -7,7 +7,7 @@ version: 0.1.0
 dependencies:
   - name: common
     repository: oci://oci.trueforge.org/truecharts
-    version: 30.4.5
+    version: 31.0.0
     alias: ""
   - name: surrealdb
     repository: https://helm.surrealdb.com
