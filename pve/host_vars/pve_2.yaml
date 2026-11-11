@@ -1,9 +1,0 @@
-network_interfaces:
-  - name: enxg0
-    mac: 38:05:25:35:28:9c
-  - name: enxg1
-    mac: 38:05:25:35:28:9d
-  - name: en2g0
-    mac: 38:05:25:35:28:9e
-  - name: en2g1
-    mac: 38:05:25:35:28:9f # vPro

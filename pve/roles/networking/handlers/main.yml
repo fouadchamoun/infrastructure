@@ -1,7 +1,0 @@
-#SPDX-License-Identifier: MIT-0
----
-# handlers file for networking
-
-- name: Refresh initramfs
-  ansible.builtin.command: update-initramfs -u -k all
-  changed_when: true
