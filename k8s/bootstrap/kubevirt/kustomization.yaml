@@ -11,4 +11,10 @@ resources:
   # renovate: datasource=github-tags depName=k8snetworkplumbingwg/multus-cni
   - https://raw.githubusercontent.com/k8snetworkplumbingwg/multus-cni/v4.3.1/deployments/multus-daemonset-thick.yml
   - networkattachmentdefinition-cr.yaml
+patches:
+  - path: multus-resources-patch.yaml
+    target:
+      kind: DaemonSet
+      name: kube-multus-ds
+      namespace: kube-system
   
