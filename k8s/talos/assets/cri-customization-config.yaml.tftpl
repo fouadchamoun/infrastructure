@@ -1,0 +1,8 @@
+---
+apiVersion: v1alpha1
+kind: CRICustomizationConfig
+name: block-device-ownership
+content: | # CRI containerd configuration fragment in TOML format.
+  [plugins."io.containerd.cri.v1.runtime"]
+    device_ownership_from_security_context = true
+    

@@ -7,4 +7,21 @@ filesystem:
   type: xfs
 provisioning:
   diskSelector:
-    match: disk.size >= 1u * TB
+    match: disk.transport == "nvme" && disk.size >= 1u * TB
+
+---
+apiVersion: v1alpha1
+kind: VolumeConfig
+name: EPHEMERAL
+provisioning:
+  maxSize: 100GB
+
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: local-path-provisioner
+provisioning:
+  diskSelector:
+    match: disk.transport == 'nvme' && disk.size <= 500u * GB
+  minSize: 50GB
+  grow: true

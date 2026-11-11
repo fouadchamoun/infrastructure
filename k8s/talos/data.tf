@@ -1,7 +1,7 @@
-data "talos_image_factory_urls" "this" {
+data "talos_image_factory_urls" "baremetal" {
   talos_version = local.talos_version
-  schematic_id  = talos_image_factory_schematic.this.id
+  schematic_id  = talos_image_factory_schematic.baremetal.id
 
-  platform      = "nocloud"
+  platform      = "metal"
   architecture  = "amd64"
 }

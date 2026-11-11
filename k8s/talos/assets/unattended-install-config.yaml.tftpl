@@ -1,0 +1,12 @@
+---
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+# The installer describes the source of the installation.
+installer:
+    image: ${installer_image} # Allows for supplying the image used to perform the installation.
+# The provisioning describes how the installation disk should be provisioned.
+provisioning:
+    # Matches disks to initialize as physical volumes.
+    diskSelector:
+        match: ${install_disk_selector} # CEL expression matching a disk.
+    wipe: true # Indicates if the installation disk should be wiped at installation time.
