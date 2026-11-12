@@ -6,7 +6,7 @@ metadata:
 spec:
   kubernetes:
     # renovate: datasource=github-releases depName=kubernetes/kubernetes
-    version: v1.35.9
+    version: v1.36.5
   
   healthChecks:
     # All nodes Ready before the roll starts
