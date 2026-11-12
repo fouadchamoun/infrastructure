@@ -31,12 +31,13 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Update versions based on renovate comments in k8s/talos/locals.tf",
+      "description": "Update Talos & K8S versions based on renovate comments",
       "managerFilePatterns": [
-        "k8s/talos/locals.tf"
+        "k8s/talos/locals.tf",
+        "k8s/bootstrap/tuppr/*"
       ],
       "matchStrings": [
-        "#\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*depName=(?<depName>.*?)(\\s*versioning=(?<versioning>.*?))?\\s*\\s*\\w+\\s*=\\s*\"?(?<currentValue>[^\"]+)\"?"
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?)\\s*depName=(?<depName>.*?)(\\s*versioning=(?<versioning>.*?))?\\s*\\s*\\w+\\s*[:=]\\s*\"?(?<currentValue>[^\"\\s]+)\"?"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     },
