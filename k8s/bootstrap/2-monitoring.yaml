@@ -148,6 +148,11 @@ spec:
           prometheusSpec:
             retention: 10d
             retentionSize: 40GiB
+            # Select all ServiceMonitors/PodMonitors/PrometheusRules, not just
+            # ones labeled release: kube-prometheus-stack.
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
             ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/platform/storage.md
             storageSpec:
              volumeClaimTemplate:
