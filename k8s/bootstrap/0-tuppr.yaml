@@ -1,0 +1,54 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tuppr
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cluster-bootstrap
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: system-upgrade
+  sources:
+    - repoURL: 'https://github.com/fouadchamoun/infrastructure.git'
+      targetRevision: main
+      path: k8s/bootstrap/tuppr
+  
+    - repoURL: ghcr.io/home-operations/charts
+      chart: tuppr
+      targetRevision: 0.5.13
+      helm:
+        valuesObject:
+          replicaCount: 1
+          revisionHistoryLimit: 3
+
+          silences:
+            enabled: true
+            alertmanager:
+              address: http://kube-prometheus-stack-alertmanager.monitoring:9093
+
+          controller:
+            logLevel: info
+            logFormat: logfmt
+
+          monitoring:
+            serviceMonitor:
+              enabled: true
+            prometheusRule:
+              enabled: true
+            dashboards:
+              enabled: true
+
+  syncPolicy:
+    automated:
+      prune: true
+      allowEmpty: false
+      selfHeal: false
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - PruneLast=true
+      - ServerSideApply=true
+      - FailOnSharedResource=true

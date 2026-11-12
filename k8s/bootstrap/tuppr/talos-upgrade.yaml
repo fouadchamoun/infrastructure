@@ -1,0 +1,64 @@
+---
+apiVersion: tuppr.home-operations.com/v1alpha1
+kind: TalosUpgrade
+metadata:
+  name: cluster
+spec:
+  talos:
+    # renovate: datasource=github-releases depName=siderolabs/talos
+    version: v1.14.1
+  
+  policy:
+    waitForVolumeDetach: true
+
+  silences:
+    - matchers:
+        - name: alertname
+          value: ^(KubeNodeUnreachable|TargetDown)$
+          matchType: "=~" # "=", "!=", "=~", "!~"
+      maxDuration: 2h0m0s # default 4h
+
+  healthChecks:
+    # All nodes Ready
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.filter(c, c.type == "Ready").all(c, c.status == "True")
+      description: all nodes Ready
+
+    # Longhorn: no attached volume degraded/faulted (ignore orphaned detached volumes)
+    - apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      expr: status.state != "attached" || status.robustness == "healthy"
+      description: no attached Longhorn volume is degraded or faulted
+
+    # Core DNS fully rolled out
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: coredns
+      namespace: kube-system
+      expr: status.readyReplicas == status.replicas
+
+    # Ingress via cloudflared (3 replicas)
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: cloudflared
+      namespace: cloudflared
+      expr: status.readyReplicas == status.replicas
+
+    # All Tailscale StatefulSets rolled out (ingress proxies, subnet exit, service proxies)
+    - apiVersion: apps/v1
+      kind: StatefulSet
+      namespace: tailscale
+      expr: status.readyReplicas == status.replicas
+
+    # Every CNPG cluster healthy
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      expr: status.phase == "Cluster in healthy state"
+      description: all CNPG clusters healthy
+
+    # Every running VM is Running (VMI only exists for started VMs)
+    - apiVersion: kubevirt.io/v1
+      kind: VirtualMachineInstance
+      expr: status.phase == "Running"
+      description: all VirtualMachineInstances Running

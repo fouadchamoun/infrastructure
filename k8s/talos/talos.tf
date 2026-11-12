@@ -125,6 +125,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
     templatefile("${path.module}/assets/kube-apiserver-config.yaml.tftpl", {}),
     templatefile("${path.module}/assets/kube-scheduler-config.yaml.tftpl", {}),
     templatefile("${path.module}/assets/kube-controller-manager-config.yaml.tftpl", {}),
+    templatefile("${path.module}/assets/kube-talos-api-access-config.yaml.tftpl", {}),
     templatefile("${path.module}/assets/sysctl-config.yaml.tftpl", {}),
     templatefile("${path.module}/assets/kubelet-config.yaml.tftpl", {}),
     templatefile("${path.module}/assets/resolver-config.yaml.tftpl", {}),
