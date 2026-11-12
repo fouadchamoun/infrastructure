@@ -137,7 +137,7 @@ resource "argocd_application" "cluster_bootstrap" {
       automated {
         prune       = false
         allow_empty = false
-        self_heal   = false
+        self_heal   = true
       }
     }
   }
