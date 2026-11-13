@@ -41,6 +41,11 @@ spec:
                     files:
                       - path: "k8s/apps/{{ .values.appName }}/argocd-patch.yaml"
 
+  # This sync policy pertains to the ApplicationSet, not to the Applications it creates.
+  syncPolicy:
+    # Prevents ApplicationSet controller from deleting Applications. Update is allowed
+    applicationsSync: create-update
+
   template:
     metadata:
       name: "{{ .values.appName }}-pr-{{ .number }}"
