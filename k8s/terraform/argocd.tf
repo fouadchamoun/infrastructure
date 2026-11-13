@@ -44,6 +44,7 @@ resource "argocd_project" "cluster_bootstrap" {
       "https://github.com/argoproj/argo-cd",
       "https://argoproj.github.io/argo-helm",
       "https://charts.longhorn.io",
+      "ghcr.io/piraeusdatastore/helm-charts",
       "ghcr.io/rancher/local-path-provisioner/charts",
       "quay.io/jetstack/charts",
       "https://charts.external-secrets.io",

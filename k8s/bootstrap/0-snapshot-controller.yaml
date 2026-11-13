@@ -1,0 +1,43 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snapshot-controller
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: cluster-bootstrap
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kube-system
+  sources:
+    - repoURL: ghcr.io/piraeusdatastore/helm-charts
+      chart: snapshot-controller
+      targetRevision: 5.3.0 # appVersion: v8.6.0, same as longhorn.image.csi.snapshotter.tag
+      helm:
+        releaseName: snapshot-controller
+        valuesObject:
+          installCRDs: true
+          keepCRDs: true
+          volumeGroupSnapshotClasses: []
+          volumeSnapshotClasses:
+            - name: longhorn-snapshot
+              annotations:
+                snapshot.storage.kubernetes.io/is-default-class: "true"
+              driver: driver.longhorn.io
+              deletionPolicy: Delete
+              parameters:
+                type: snap
+ 
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels: # The labels to set on the application namespace
+        pod-security.kubernetes.io/enforce: privileged
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - PruneLast=true
+      - ServerSideApply=true
+      - FailOnSharedResource=true
+      - RespectIgnoreDifferences=true
