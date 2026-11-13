@@ -156,6 +156,14 @@
       ],
       "sourceUrl": "https://github.com/trueforge-org/websites",
       "sourceDirectory": "truecharts/src/content/docs/charts/stable/{{{depName}}}/"
+    },
+    {
+      "matchPackageNames": [
+        "longhorn",
+        "snapshot-controller"
+      ],
+      "groupName": "longhorn",
+      "automerge": true
     }
   ]
 }
