@@ -2,7 +2,7 @@ TZ: "Europe/Paris"
 
 image:
   repository: ghcr.io/ovumcy/ovumcy-web
-  tag: v1.9.2
+  tag: v2.2.1
 
 workload:
   main:
