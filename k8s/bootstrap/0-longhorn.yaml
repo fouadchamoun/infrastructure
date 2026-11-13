@@ -63,7 +63,7 @@ spec:
             metadata:
               name: longhorn-live-migratable
               annotations:
-                storageclass.kubernetes.io/is-default-class: "false"
+                storageclass.kubevirt.io/is-default-virt-class: "true"
             provisioner: driver.longhorn.io
             allowVolumeExpansion: true
             reclaimPolicy: Retain
