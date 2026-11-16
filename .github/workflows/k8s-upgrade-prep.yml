@@ -62,10 +62,18 @@ jobs:
 
           echo "base=$base" >> "$GITHUB_OUTPUT"
           echo "target=$target" >> "$GITHUB_OUTPUT"
-          if [ "$target" = "$base" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
+          # Skip the heavy render+validate when the MINOR doesn't change (patch bump):
+          # patch updates are auto-merged by renovate anyway, and the cluster/k3s image
+          # is per-minor. A skipped job reports "Success" so nothing blocks the merge.
+          # (Also covers base == target, i.e. non-version PRs touching these files.)
+          minor() { echo "${1#v}" | cut -d. -f1-2; }
+          # shortcut: set the FORCE_K8S_CHECK repo variable to true to run the full
+          # check on every PR (incl. patches) — convenient during testing
+          force_all="${{ vars.FORCE_K8S_CHECK }}"
+          if [ "$force_all" = "true" ] || [ "$(minor "$base")" != "$(minor "$target")" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
   validate:
