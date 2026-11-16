@@ -83,16 +83,50 @@ jobs:
           ref: main
           path: main
 
-      - name: Render all apps on kind ${{ needs.extract.outputs.target }}
+      - id: resolve
+        name: Resolve k3d + k3s image for Kubernetes ${{ needs.extract.outputs.target }}
+        run: |
+          target="${{ needs.extract.outputs.target }}"
+          minor="${target#v}"; minor="${minor%.*}"
+          echo "target=$target minor=$minor"
+
+          # k3d binary: latest release, resolved via redirect (avoids api.github.com rate limits)
+          k3d_ver=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+            "https://github.com/k3d-io/k3d/releases/latest" \
+            | sed -E 's#.*/tag/(v[0-9.]+)$#\1#')
+          echo "k3d_ver=$k3d_ver"
+          curl -fsSL -o "$RUNNER_TEMP/k3d" \
+            "https://github.com/k3d-io/k3d/releases/download/${k3d_ver}/k3d-linux-amd64"
+          chmod +x "$RUNNER_TEMP/k3d"
+
+          # k3s image: prefer the exact target patch (k3s tracks upstream releases), else the
+          # newest v<minor>.*-k3s1 published for the minor (k3s can lag a fresh patch by a day).
+          k3s_image="${target}-k3s1"
+          if ! curl -fsI --max-time 15 "https://hub.docker.com/v2/repositories/rancher/k3s/tags/${k3s_image}" >/dev/null 2>&1; then
+            k3s_image=$(curl -fsSL --max-time 20 \
+              "https://hub.docker.com/v2/repositories/rancher/k3s/tags?page_size=100&name=${minor}" \
+              | jq -r '.results[].name | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+-k3s1$"))' \
+              | sort -V | tail -1)
+          fi
+          if [ -z "$k3s_image" ]; then
+            echo "::error::no rancher/k3s image published for the $minor minor yet"
+            exit 1
+          fi
+          echo "k3s_image=$k3s_image"
+          echo "k3s_image=$k3s_image" >> "$GITHUB_OUTPUT"
+
+      - name: Render all apps on k3s ${{ needs.extract.outputs.target }}
         run: |
           mkdir -p output
           # auto-detect-files-changed=false + no --files-changed forces EVERY app to render,
           # bypassing the `watch-pattern: k8s/apps/.*` annotation (no app files change on a version bump).
-          # The kind cluster is pinned to the TARGET K8s version, so Helm renders with the real
+          # The k3d cluster is pinned to the TARGET K8s version, so Helm renders with the real
           # .Capabilities.KubeVersion. Render failures exit non-zero and fail the job.
+          # The container is distroless (no k3d), so the resolved binary is mounted over /usr/local/bin/k3d.
           docker run \
             --network=host \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$RUNNER_TEMP/k3d:/usr/local/bin/k3d:ro" \
             -v $(pwd)/main/.github/workflows/assets/argocd:/argocd-config \
             -v $(pwd)/main:/base-branch \
             -v $(pwd)/pull-request:/target-branch \
@@ -102,7 +136,8 @@ jobs:
             ${{ env.ARGOCD_DIFF_PREVIEW_IMAGE }} \
             --argocd-config-dir /argocd-config \
             --argocd-chart-version $(yq '. | select(.metadata.name == "argocd") | .spec.source.targetRevision' main/k8s/bootstrap/0-argocd.yaml) \
-            --kind-options "--image kindest/node:${{ needs.extract.outputs.target }}" \
+            --cluster k3d \
+            --k3d-options "--image rancher/k3s:${{ steps.resolve.outputs.k3s_image }}" \
             --auto-detect-files-changed=false \
             --output-folder /output \
             --output-app-manifests
@@ -152,7 +187,7 @@ jobs:
           cat <<'EOF' > /tmp/k8s-upgrade-prep.md
           ### ⬆️ Kubernetes upgrade pre-check: ${{ needs.extract.outputs.base }} → ${{ needs.extract.outputs.target }}
 
-          ✅ All apps rendered cleanly on kind **${{ needs.extract.outputs.target }}**
+          ✅ All apps rendered cleanly on k3s **${{ needs.extract.outputs.target }}**
           ✅ Schema validation passed (kubeconform) against **${{ needs.extract.outputs.target }}**
           ✅ No removed APIs (pluto) against **${{ needs.extract.outputs.target }}**
 
