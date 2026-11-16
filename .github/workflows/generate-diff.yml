@@ -8,6 +8,11 @@ on:
       - "k8s/apps/**"
       - "k8s/bootstrap/**"
       - "k8s/charts/**"
+    # Talos/K8s version bumps (tuppr + talos locals) are validated by k8s-upgrade-prep.yml;
+    # skip them here or diff-preview would spin up a cluster and post an empty result.
+    paths-ignore:
+      - "k8s/bootstrap/tuppr/**"
+      - "k8s/talos/**"
 
 jobs:
   argocd-diff-preview:
