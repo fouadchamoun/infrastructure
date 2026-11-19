@@ -56,6 +56,10 @@ spec:
             # -- Setting that allows you to specify the data engine version for the default Longhorn StorageClass. (Options: "v1", "v2")
             dataEngine: v1
           
+          defaultBackupStore:
+            backupTarget: s3://fchamoun-longhorn-backup@fr-par/
+            backupTargetCredentialSecret: longhorn-backupstore-credentials
+
           # -- Add extra objects manifests
           extraObjects:
           - apiVersion: storage.k8s.io/v1
@@ -73,6 +77,22 @@ spec:
               migratable: "true"
               dataLocality: "best-effort"
               dataEngine: "v1"
+          
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata:
+              name: longhorn-backupstore-credentials
+            spec:
+              secretStoreRef:
+                kind: ClusterSecretStore
+                name: scw-sm
+              target:
+                name: longhorn-backupstore-credentials
+              refreshInterval: 60s
+              dataFrom:
+              - extract:
+                  key: path:/longhorn/backupstore/credentials
+
 
   syncPolicy:
     managedNamespaceMetadata:
