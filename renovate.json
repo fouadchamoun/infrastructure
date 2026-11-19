@@ -160,7 +160,7 @@
     {
       "matchPackageNames": [
         "longhorn",
-        "snapshot-controller"
+        "ghcr.io/piraeusdatastore/helm-charts/snapshot-controller"
       ],
       "groupName": "longhorn",
       "automerge": true
