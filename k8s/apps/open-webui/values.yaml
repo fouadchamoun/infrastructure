@@ -18,3 +18,59 @@ open-webui:
     enabled: true
     size: 5Gi
     storageClass: longhorn
+
+  extraEnvVars:
+  # https://docs.openwebui.com/reference/env-configuration/#enable_kb_exec
+  - name: ENABLE_KB_EXEC
+    value: "True"
+  # https://docs.openwebui.com/reference/env-configuration/#enable_queries_cache
+  - name: ENABLE_QUERIES_CACHE
+    value: "True"
+
+  # https://docs.openwebui.com/reference/env-configuration/#web_loader_timeout
+  - name: WEB_LOADER_TIMEOUT
+    value: "30"
+  # https://docs.openwebui.com/reference/env-configuration/#firecrawl_timeout
+  - name: FIRECRAWL_TIMEOUT
+    value: "30"
+
+  # https://docs.openwebui.com/reference/env-configuration/#enable_oauth_id_token_cookie
+  - name: ENABLE_OAUTH_ID_TOKEN_COOKIE
+    value: "False"
+
+  extraEnvFrom:
+  - secretRef:
+      name: open-webui-env
+
+  extraResources:
+  - |
+    apiVersion: generators.external-secrets.io/v1alpha1
+    kind: Password
+    metadata:
+      name: open-webui-keys
+    spec:
+      # 32 bytes hex = 64 chars, open-webui's recommended WEBUI_SECRET_KEY shape
+      length: 32
+      encoding: hex
+      secretKeys:
+        - "WEBUI_SECRET_KEY"
+        - "OAUTH_CLIENT_INFO_ENCRYPTION_KEY"
+        - "OAUTH_SESSION_TOKEN_ENCRYPTION_KEY"
+
+  - |
+    apiVersion: external-secrets.io/v1
+    kind: ExternalSecret
+    metadata:
+      name: open-webui-env
+    spec:
+      # Generate once and pin it: without CreatedOnce the generator would produce
+      # a new value on every sync, rotating the signing key and signing everyone out.
+      refreshPolicy: CreatedOnce
+      target:
+        name: open-webui-env
+      dataFrom:
+      - sourceRef:
+          generatorRef:
+            apiVersion: generators.external-secrets.io/v1alpha1
+            kind: Password
+            name: open-webui-keys
