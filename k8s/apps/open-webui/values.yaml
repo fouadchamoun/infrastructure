@@ -19,6 +19,25 @@ open-webui:
     size: 5Gi
     storageClass: longhorn
 
+  extraEnvVars:
+  # https://docs.openwebui.com/reference/env-configuration/#enable_kb_exec
+  - name: ENABLE_KB_EXEC
+    value: "True"
+  # https://docs.openwebui.com/reference/env-configuration/#enable_queries_cache
+  - name: ENABLE_QUERIES_CACHE
+    value: "True"
+
+  # https://docs.openwebui.com/reference/env-configuration/#web_loader_timeout
+  - name: WEB_LOADER_TIMEOUT
+    value: "30"
+  # https://docs.openwebui.com/reference/env-configuration/#firecrawl_timeout
+  - name: FIRECRAWL_TIMEOUT
+    value: "30"
+
+  # https://docs.openwebui.com/reference/env-configuration/#enable_oauth_id_token_cookie
+  - name: ENABLE_OAUTH_ID_TOKEN_COOKIE
+    value: "False"
+
   extraEnvFrom:
   - secretRef:
       name: open-webui-env
