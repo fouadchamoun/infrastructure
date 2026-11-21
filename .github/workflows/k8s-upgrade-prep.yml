@@ -1,0 +1,206 @@
+name: K8s Upgrade Prep
+
+on:
+  pull_request:
+    branches:
+      - main
+    # Only Talos/K8s version bumps touch these files (via Renovate's custom regex manager)
+    paths:
+      - "k8s/talos/locals.tf"
+      - "k8s/bootstrap/tuppr/kubernetes-upgrade.yaml"
+
+concurrency:
+  group: k8s-upgrade-prep-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # Digest-pinned tool images (renovate can bump these separately if desired)
+  ARGOCD_DIFF_PREVIEW_IMAGE: dagandersen/argocd-diff-preview:v0.2.17@sha256:ea90848df29337b50d5058330210b38e39232360b78d9c60951fc92e454c6941
+  KUBECONFORM_IMAGE: ghcr.io/yannh/kubeconform:v0.7.0@sha256:85dbef6b4b312b99133decc9c6fc9495e9fc5f92293d4ff3b7e1b30f5611823c
+  PLUTO_IMAGE: us-docker.pkg.dev/fairwinds-ops/oss/pluto:v5.24.5@sha256:9987a169bea0ccac6c1eb9a9f269b1f561ce639507c0b2e4ad671c298b075a92
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    outputs:
+      base: ${{ steps.versions.outputs.base }}
+      target: ${{ steps.versions.outputs.target }}
+      skip: ${{ steps.versions.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pull-request
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          path: main
+
+      - id: versions
+        run: |
+          target=$(sed -nE 's/.*kubernetes_version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' pull-request/k8s/talos/locals.tf | head -n1 | tr -d '[:space:]')
+          tuppr=$(yq '.spec.kubernetes.version' pull-request/k8s/bootstrap/tuppr/kubernetes-upgrade.yaml | tr -d '[:space:]')
+          base=$(sed -nE 's/.*kubernetes_version[[:space:]]*=[[:space:]]*"([^"]+)"/\1/p' main/k8s/talos/locals.tf | head -n1 | tr -d '[:space:]')
+
+          echo "current (main): $base"
+          echo "target (PR):    $target"
+          echo "tuppr (PR):     $tuppr"
+
+          if [ -z "$target" ]; then
+            echo "Could not parse kubernetes_version from k8s/talos/locals.tf" >&2
+            exit 1
+          fi
+          # Version drift between the two sources = instant surprise
+          if [ "$target" != "$tuppr" ]; then
+            echo "::error::kubernetes version mismatch: locals.tf=$target vs tuppr=$tuppr"
+            exit 1
+          fi
+
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          # Skip the heavy render+validate when the MINOR doesn't change (patch bump):
+          # patch updates are auto-merged by renovate anyway, and the cluster/k3s image
+          # is per-minor. A skipped job reports "Success" so nothing blocks the merge.
+          # (Also covers base == target, i.e. non-version PRs touching these files.)
+          minor() { echo "${1#v}" | cut -d. -f1-2; }
+          # shortcut: set the FORCE_K8S_CHECK repo variable to true to run the full
+          # check on every PR (incl. patches) — convenient during testing
+          force_all="${{ vars.FORCE_K8S_CHECK }}"
+          if [ "$force_all" = "true" ] || [ "$(minor "$base")" != "$(minor "$target")" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  validate:
+    needs: extract
+    if: needs.extract.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pull-request
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          path: main
+
+      - id: resolve
+        name: Resolve k3d + k3s image for Kubernetes ${{ needs.extract.outputs.target }}
+        run: |
+          target="${{ needs.extract.outputs.target }}"
+          minor="${target#v}"; minor="${minor%.*}"
+          echo "target=$target minor=$minor"
+
+          # k3d binary: latest release, resolved via redirect (avoids api.github.com rate limits)
+          k3d_ver=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+            "https://github.com/k3d-io/k3d/releases/latest" \
+            | sed -E 's#.*/tag/(v[0-9.]+)$#\1#')
+          echo "k3d_ver=$k3d_ver"
+          curl -fsSL -o "$RUNNER_TEMP/k3d" \
+            "https://github.com/k3d-io/k3d/releases/download/${k3d_ver}/k3d-linux-amd64"
+          chmod +x "$RUNNER_TEMP/k3d"
+
+          # k3s image: prefer the exact target patch (k3s tracks upstream releases), else the
+          # newest v<minor>.*-k3s1 published for the minor (k3s can lag a fresh patch by a day).
+          k3s_image="${target}-k3s1"
+          if ! curl -fsI --max-time 15 "https://hub.docker.com/v2/repositories/rancher/k3s/tags/${k3s_image}" >/dev/null 2>&1; then
+            k3s_image=$(curl -fsSL --max-time 20 \
+              "https://hub.docker.com/v2/repositories/rancher/k3s/tags?page_size=100&name=${minor}" \
+              | jq -r '.results[].name | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+-k3s1$"))' \
+              | sort -V | tail -1)
+          fi
+          if [ -z "$k3s_image" ]; then
+            echo "::error::no rancher/k3s image published for the $minor minor yet"
+            exit 1
+          fi
+          echo "k3s_image=$k3s_image"
+          echo "k3s_image=$k3s_image" >> "$GITHUB_OUTPUT"
+
+      - name: Render all apps on k3s ${{ needs.extract.outputs.target }}
+        run: |
+          mkdir -p output
+          # auto-detect-files-changed=false + no --files-changed forces EVERY app to render,
+          # bypassing the `watch-pattern: k8s/apps/.*` annotation (no app files change on a version bump).
+          # The k3d cluster is pinned to the TARGET K8s version, so Helm renders with the real
+          # .Capabilities.KubeVersion. Render failures exit non-zero and fail the job.
+          # The container is distroless (no k3d), so the resolved binary is mounted over /usr/local/bin/k3d.
+          docker run \
+            --network=host \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$RUNNER_TEMP/k3d:/usr/local/bin/k3d:ro" \
+            -v $(pwd)/main/.github/workflows/assets/argocd:/argocd-config \
+            -v $(pwd)/main:/base-branch \
+            -v $(pwd)/pull-request:/target-branch \
+            -v $(pwd)/output:/output \
+            -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
+            -e REPO=${{ github.repository }} \
+            ${{ env.ARGOCD_DIFF_PREVIEW_IMAGE }} \
+            --argocd-config-dir /argocd-config \
+            --argocd-chart-version $(yq '. | select(.metadata.name == "argocd") | .spec.source.targetRevision' main/k8s/bootstrap/0-argocd.yaml) \
+            --cluster k3d \
+            --k3d-options "--image rancher/k3s:${{ steps.resolve.outputs.k3s_image }}" \
+            --auto-detect-files-changed=false \
+            --output-folder /output \
+            --output-app-manifests
+
+      - name: Schema validation (kubeconform) against ${{ needs.extract.outputs.target }}
+        run: |
+          kc_target="${{ needs.extract.outputs.target }}"
+          kc_target="${kc_target#v}"
+          # Standalone schemas for the exact target version, fetched from the upstream
+          # kubernetes-json-schema repo. CRDs/custom kinds have no published schema, so
+          # ignore-missing-schemas skips those; removed core APIs are caught by pluto
+          # (next step). No --strict: Helm-rendered output legitimately carries fields
+          # outside the core schema, and strict mode would false-positive on every PR.
+          docker run --rm \
+            -v $(pwd)/output:/out \
+            ${{ env.KUBECONFORM_IMAGE }} \
+            -kubernetes-version "$kc_target" \
+            -ignore-missing-schemas \
+            -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' \
+            -summary \
+            /out/target
+
+      - name: Removed API check (pluto) against ${{ needs.extract.outputs.target }}
+        run: |
+          # Fail only on APIs REMOVED at the target version. Pluto's exit codes are built-in
+          # (2=deprecated, 3=removed, 4=no replacement available); --ignore-deprecations and
+          # --ignore-unavailable-replacements opt out of those so removed is the only failer.
+          # --only-show-removed keeps the report focused on what actually breaks.
+          docker run --rm \
+            -v $(pwd)/output:/out \
+            ${{ env.PLUTO_IMAGE }} \
+            detect-files \
+            -d /out/target \
+            --target-versions k8s=${{ needs.extract.outputs.target }} \
+            --only-show-removed \
+            --ignore-deprecations \
+            --ignore-unavailable-replacements
+
+  report:
+    needs: [extract, validate]
+    if: needs.extract.outputs.skip != 'true' && needs.validate.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Post summary as comment
+        run: |
+          cat <<'EOF' > /tmp/k8s-upgrade-prep.md
+          ### ⬆️ Kubernetes upgrade pre-check: ${{ needs.extract.outputs.base }} → ${{ needs.extract.outputs.target }}
+
+          ✅ All apps rendered cleanly on k3s **${{ needs.extract.outputs.target }}**
+          ✅ Schema validation passed (kubeconform) against **${{ needs.extract.outputs.target }}**
+          ✅ No removed APIs (pluto) against **${{ needs.extract.outputs.target }}**
+
+          These checks block merge. (Render/validation warnings would appear here.)
+          EOF
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file /tmp/k8s-upgrade-prep.md --edit-last --create-if-none
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

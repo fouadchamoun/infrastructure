@@ -66,6 +66,23 @@
       ]
     },
     {
+      "description": "Auto-merge patch updates for Talos/Kubernetes (regex manager); minor bumps still require the k8s-upgrade-prep check.",
+      "automerge": true,
+      "labels": [
+        "automerge"
+      ],
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchPackageNames": [
+        "siderolabs/talos",
+        "kubernetes/kubernetes"
+      ]
+    },
+    {
       "description": "Ignore minimum release age for non docker.io images in helm-values, helmv3 and argocd managers (no release date info)",
       "minimumReleaseAge": null,
       "matchManagers": [
