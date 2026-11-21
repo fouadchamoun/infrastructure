@@ -138,6 +138,12 @@ spec:
                 revision: 1
                 datasource:
                   - { name: DS_PROMETHEUS, value: Prometheus }
+              # Ref: https://grafana.com/grafana/dashboards/16888
+              longhorn:
+                gnetId: 16888
+                revision: 14
+                datasource:
+                  - { name: DS_PROMETHEUS, value: Prometheus }
 
         prometheus:
           ingress:
