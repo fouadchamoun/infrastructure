@@ -14,7 +14,7 @@ spec:
   sources:
     - repoURL: ghcr.io/piraeusdatastore/helm-charts
       chart: snapshot-controller
-      targetRevision: 5.3.0 # appVersion: v8.6.0, same as longhorn.image.csi.snapshotter.tag
+      targetRevision: 5.4.0 # appVersion: v8.6.0, same as longhorn.image.csi.snapshotter.tag
       helm:
         releaseName: snapshot-controller
         valuesObject:
