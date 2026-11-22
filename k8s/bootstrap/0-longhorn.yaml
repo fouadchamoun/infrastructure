@@ -23,12 +23,20 @@ spec:
          
           # https://github.com/longhorn/charts/blob/longhorn-1.12.1/charts/longhorn/values.yaml#L260
           defaultSettings:
+            allowCollectingLonghornUsageMetrics: false
             defaultDataPath: /var/mnt/longhorn/
             nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
             storageOverProvisioningPercentage: 100
             storageMinimalAvailablePercentage: 25
             defaultDataLocality: best-effort
+            replicaAutoBalance: best-effort
             concurrentAutomaticEngineUpgradePerNodeLimit: 3
+            recurringSuccessfulJobsHistoryLimit: 3
+            recurringFailedJobsHistoryLimit: 3
+            autoCleanupSystemGeneratedSnapshot: true
+            autoCleanupRecurringJobBackupSnapshot: true
+            autoCleanupSnapshotWhenDeleteBackup: true
+            autoCleanupSnapshotAfterOnDemandBackupCompleted: true
           
           ingress:
             enabled: true
@@ -63,10 +71,28 @@ spec:
             reclaimPolicy: Delete
             # -- Setting that allows you to enable live migration of a Longhorn volume from one node to another.
             migratable: true
-            # -- Setting that allows you to enable automatic snapshot removal during filesystem trim for a Longhorn StorageClass. (Options: "ignored", "enabled", "disabled")
-            unmapMarkSnapChainRemoved: enabled
             # -- Setting that allows you to specify the data engine version for the default Longhorn StorageClass. (Options: "v1", "v2")
             dataEngine: v1
+            recurringJobSelector: 
+              enable: true 
+              jobList: '[
+                  {
+                    "name": "trim-fs",
+                    "isGroup": false
+                  },
+                  {
+                    "name": "snapshot-hourly",
+                    "isGroup": false
+                  },
+                  {
+                    "name": "backup-daily",
+                    "isGroup": false
+                  },
+                  {
+                    "name": "backup-weekly",
+                    "isGroup": false
+                  }
+                ]'
           
           defaultBackupStore:
             backupTarget: s3://fchamoun-longhorn-backup@fr-par/
@@ -89,7 +115,31 @@ spec:
               migratable: "true"
               dataLocality: "best-effort"
               dataEngine: "v1"
+              recurringJobSelector: '[
+                  {
+                    "name": "snapshot-hourly",
+                    "isGroup": false
+                  },
+                  {
+                    "name": "backup-daily",
+                    "isGroup": false
+                  },
+                  {
+                    "name": "backup-weekly",
+                    "isGroup": false
+                  }
+                ]'
           
+          - apiVersion: longhorn.io/v1beta2
+            kind: RecurringJob
+            metadata:
+              name: trim-fs
+            spec:
+              task: filesystem-trim
+              cron: "0 0 * * 0"
+              retain: 0
+              concurrency: 1
+
           - apiVersion: external-secrets.io/v1
             kind: ExternalSecret
             metadata:
