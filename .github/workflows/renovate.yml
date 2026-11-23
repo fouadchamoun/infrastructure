@@ -7,10 +7,28 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      repoCache:
+        description: 'Reset or disable the cache?'
+        type: choice
+        default: enabled
+        options:
+          - enabled
+          - disabled
+          - reset
 
-concurrency: 
+concurrency:
   group: renovate
   cancel-in-progress: false
+
+# Adding these as env variables makes it easy to re-use them in different steps and in bash.
+env:
+  # This is the dir renovate provides -- if we set our own directory via cacheDir, we can run into permissions issues.
+  # It is also possible to cache a higher level of the directory, but it has minimal benefit. While renovate execution
+  # time gets faster, it also takes longer to upload the cache as it grows bigger.
+  cache_dir: /tmp/renovate/cache/renovate/repository
+  # This can be manually changed to bust the cache if necessary.
+  cache_key: renovate-cache
 
 jobs:
   renovate:
@@ -27,6 +45,22 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.repository }}
 
+      - name: Restore renovate cache
+        id: cache-restore
+        if: github.event.inputs.repoCache != 'disabled' && github.event.inputs.repoCache != 'reset'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.cache_dir }}
+          key: ${{ env.cache_key }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ${{ env.cache_key }}-
+
+      - name: Fix restored cache ownership
+        if: steps.cache-restore.outputs.cache-matched-key != ''
+        run: |
+          sudo chown -R 12021:0 /tmp/renovate/
+          ls -R $cache_dir
+
       - name: Self-hosted Renovate
         uses: renovatebot/github-action@acdd6bda8b035c99ce59d5675816af2aa65a1774 # v46.3.14
         with:
@@ -36,4 +70,13 @@ jobs:
           RENOVATE_ALLOWED_COMMANDS: '["*"]'
           RENOVATE_ONBOARDING: 'false'
           RENOVATE_PLATFORM_COMMIT: 'enabled' # sign commits
+          # This enables the cache -- if this is set, it's not necessary to add it to renovate.json.
+          RENOVATE_REPOSITORY_CACHE: ${{ github.event.inputs.repoCache || 'enabled' }}
           LOG_LEVEL: debug
+
+      - name: Save renovate cache
+        if: github.event.inputs.repoCache != 'disabled' && steps.cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.cache_dir }}
+          key: ${{ env.cache_key }}-${{ github.run_id }}-${{ github.run_attempt }}
