@@ -159,11 +159,24 @@
     },
     {
       "matchPackageNames": [
-        "longhorn",
+        "longhorn"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "bash ./.github/scripts/sync-longhorn-snapshotter.sh"
+        ],
+        "fileFilters": [
+          "k8s/bootstrap/0-snapshot-controller.yaml"
+        ],
+        "executionMode": "update"
+      }
+    },
+    {
+      "description": "snapshot-controller revision is derived from the longhorn chart's bundled CSI snapshotter via postUpgradeTasks; never update it independently",
+      "matchPackageNames": [
         "ghcr.io/piraeusdatastore/helm-charts/snapshot-controller"
       ],
-      "groupName": "longhorn",
-      "automerge": true
+      "enabled": false
     }
   ]
 }
