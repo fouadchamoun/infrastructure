@@ -2,7 +2,7 @@ name: Renovate
 
 on:
   schedule:
-    - cron: '47 * * * *'
+    - cron: '47 17 * * *'
   push:
     branches:
       - main
