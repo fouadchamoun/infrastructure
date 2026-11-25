@@ -1,11 +1,11 @@
 name: Renovate
 
 on:
-  schedule:
-    - cron: '47 17 * * *'
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [dispatch-renovate]
   workflow_dispatch:
     inputs:
       repoCache:
