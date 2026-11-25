@@ -2,12 +2,13 @@ immich:
   immich:
     enable_ml: false
 
-  cnpg:
-    main:
+  dependencies:
+    postgresql:
       enabled: true
-
-  redis:
-    enabled: true
+      operator:
+        pgVersion: 16
+    valkey:
+      enabled: true
 
   ingress:
     main:
