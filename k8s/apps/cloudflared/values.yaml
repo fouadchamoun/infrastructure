@@ -14,10 +14,10 @@ cloudflared:
             env:
               # https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/configure-tunnels/run-parameters
               TUNNEL_METRICS: 0.0.0.0:2000
-            envFrom:
-            - secretRef:
-                name: "{{ .Release.Name }}-tunnel-token"
-                expandObjectName: false
+              TUNNEL_TOKEN:
+                secretKeyRef:
+                  name: tunnel-token
+                  key: token
 
             probes:
               # Cloudflared has a /ready endpoint which returns 200 if and only if
@@ -32,7 +32,7 @@ cloudflared:
                   successThreshold: 1
                   timeoutSeconds: 5
                   periodSeconds: 10
-
+      
   resources:
     requests:
       cpu: 500m
@@ -40,24 +40,18 @@ cloudflared:
     limits:
       cpu: 4000m
       memory: 1024Mi
-
-  extraTpl:
-  - |
-    apiVersion: external-secrets.io/v1
-    kind: ExternalSecret
-    metadata:
-      name: "{{ .Release.Name }}-tunnel-token"
-    spec:
+  
+  secret:
+    env-secrets:
+      enabled: false
+  
+  externalSecret:
+    tunnel-token:
+      enabled: true
+      refreshInterval: 1h
       secretStoreRef:
         kind: ClusterSecretStore
         name: scw-sm
-      target:
-        name: "{{ .Release.Name }}-tunnel-token"
-        template:
-          engineVersion: v2
-          data:
-            TUNNEL_TOKEN: "{{ "{{ .token }}" }}"
-      refreshInterval: 1h
       dataFrom:
-      - extract:
-          key: path:/cloudflare/tunnel/talos
+        - extract:
+            key: path:/cloudflare/tunnel/talos
