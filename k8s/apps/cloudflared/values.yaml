@@ -22,7 +22,7 @@ cloudflared:
             probes:
               # Cloudflared has a /ready endpoint which returns 200 if and only if
               # it has an active connection to Cloudflare's network.
-              liveness:
+              readiness:
                 enabled: true
                 port: 2000
                 path: /ready
@@ -32,7 +32,7 @@ cloudflared:
                   successThreshold: 1
                   timeoutSeconds: 5
                   periodSeconds: 10
-
+      
   resources:
     requests:
       cpu: 500m
@@ -40,6 +40,10 @@ cloudflared:
     limits:
       cpu: 4000m
       memory: 1024Mi
+
+  secret:
+    env-secrets:
+      enabled: false
 
   extraTpl:
   - |
@@ -61,3 +65,15 @@ cloudflared:
       dataFrom:
       - extract:
           key: path:/cloudflare/tunnel/talos
+
+
+  # externalSecret:
+  #   tunnel-token:
+  #     enabled: true
+  #     refreshInterval: 1h
+  #     secretStoreRef:
+  #       kind: ClusterSecretStore
+  #       name: scw-sm
+  #     dataFrom:
+  #       - extract:
+  #           key: path:/cloudflare/tunnel/talos
